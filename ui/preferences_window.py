@@ -3,12 +3,13 @@ from CTkCodeBox import CTkCodeBox
 
 
 class PreferencesWindow(ctk.CTkToplevel):
-    def __init__(self, MainWindow: ctk.CTk):
+    def __init__(self, MainWindow: ctk.CTk, resource_path):
         super().__init__()
         self.MainWindow = MainWindow
         self.title("Preferences")
         self.geometry("400x500")
-        self.iconbitmap("assets/xzy-notepad-icon.ico")
+        try: self.iconbitmap(resource_path('xzy-notepad-icon.ico'))
+        except: self.iconbitmap('assets/xzy-notepad-icon.ico')
 
         # Font size selection
         ctk.CTkLabel(self, text="Font Size:").pack(pady=5)
