@@ -4,11 +4,12 @@ from CTkCodeBox import CTkCodeBox
 
 
 class NewWindow(ctk.CTkToplevel):
-    def __init__(self, MainWindow: ctk.CTk):
+    def __init__(self, MainWindow: ctk.CTk, resource_path):
         super().__init__()
         self.MainWindow = MainWindow
         self.title("xzyNotepad - New File.py")
-        self.iconbitmap("assets/xzy-notepad-icon.ico")
+        try: self.iconbitmap(resource_path('xzy-notepad-icon.ico'))
+        except: self.iconbitmap('assets/xzy-notepad-icon.ico')
         self.geometry("1000x500")
         self.minsize(1000, 350)
         self.maxsize(1250, 1000)
