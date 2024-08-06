@@ -9,12 +9,14 @@ from utils.helpers import LANGUAGES, show_messagebox, File_Types
 
 
 class MainWindow(ctk.CTk):
-    def __init__(self):
+    def __init__(self, resource_path):
         super().__init__()
         self.title("xzyNotepad - New File.py")
         self.geometry("1000x500")
-        self.iconbitmap("assets/xzy-notepad-icon.ico")
+        try: self.iconbitmap(resource_path('xzy-notepad-icon.ico'))
+        except: self.iconbitmap('assets/xzy-notepad-icon.ico')
 
+        self.resource_path = resource_path
         self.disable_updating_code = False
         self.file_name = "New File.py"
         self.updating = False
@@ -47,7 +49,7 @@ class MainWindow(ctk.CTk):
             widget.insert("insert", " " * self.indent_space)
         return "break"
 
-    def new_file(self): NewWindow(self)
+    def new_file(self): NewWindow(self, self.resource_path)
 
     def show_soon(self): show_messagebox(title="xzyNotepad", message="This option will be soon.", icon="info")
 
@@ -100,13 +102,13 @@ class MainWindow(ctk.CTk):
         for window in self.all_children:
             if window.title() == "Preferences":
                 return
-        PreferencesWindow(self)
+        PreferencesWindow(self, self.resource_path)
 
     def show_about(self):
         for window in self.all_children:
             if window.title() == "About":
                 return
-        AboutWindow(self)
+        AboutWindow(self, self.resource_path)
 
     def destroy_other_window(self, window):
         self.all_children.remove(window)
