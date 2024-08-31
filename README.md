@@ -8,6 +8,7 @@ An open-source versatile notepad designed specifically for writing and editing c
 - CTkMessagebox
 - CTkMenuBar
 - CTkCodeBox
+- CTkListbox
 - os
 - json
 - requests
