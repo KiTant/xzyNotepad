@@ -9,6 +9,8 @@ An open-source versatile notepad designed specifically for writing and editing c
 - CTkMenuBar
 - CTkCodeBox
 - os
+- json
+- requests
 
 ## Screenshot:
 ![Program screenshot](https://github.com/KiTant/xzyNotepad/blob/main/ScreenshotOfProgram.PNG)
