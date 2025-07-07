@@ -57,7 +57,7 @@ class NewWindow(ctk.CTkToplevel):
             self.history_index = len(self.history) - 1
 
     def place_icon(self):
-        try: self.iconbitmap(self.resource_path('xzy-notepad-icon.ico'))
+        try: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico'))
         except: self.iconbitmap('assets/xzy-notepad-icon.ico')
 
     def winfo_name(self): return '!toplevel'

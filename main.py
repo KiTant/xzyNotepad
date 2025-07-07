@@ -12,7 +12,7 @@ settings_file = os.path.join(appdata_dir, 'xzyNotepad', 'settings.json')
 previous_settings_file = os.path.join(appdata_dir, 'xzyNotepad', 'previous_settings.json')
 
 ctk.set_appearance_mode("dark")
-try: ctk.set_default_color_theme(resource_path('yellow.json'))
+try: ctk.set_default_color_theme(resource_path('assets/yellow.json'))
 except: ctk.set_default_color_theme('assets/yellow.json')
 
 if __name__ == '__main__':

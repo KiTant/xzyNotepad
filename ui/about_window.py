@@ -24,9 +24,9 @@ class AboutWindow(ctk.CTkToplevel):
         self.after(100, lambda: self.focus_set())
 
     def place_icon(self):
-        try: self.iconbitmap(self.resource_path('xzy-notepad-icon.ico'))
+        try: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico'))
         except: self.iconbitmap('assets/xzy-notepad-icon.ico')
 
     def open_guide(self):
-        try: os.startfile(self.resource_path('xzyNotepadGuide.html'))
+        try: os.startfile(self.resource_path('assets/xzyNotepadGuide.html'))
         except: os.startfile(os.path.join('assets\\xzyNotepadGuide.html'))

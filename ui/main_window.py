@@ -13,7 +13,7 @@ class MainWindow(ctk.CTk):
         self.current_language = "txt"
         self.title(f"xzyNotepad - New File.{self.current_language}")
         self.geometry("1200x550")
-        try: self.iconbitmap(resource_path('xzy-notepad-icon.ico'))
+        try: self.iconbitmap(resource_path('assets/xzy-notepad-icon.ico'))
         except: self.iconbitmap('assets/xzy-notepad-icon.ico')
 
         self.resource_path = resource_path

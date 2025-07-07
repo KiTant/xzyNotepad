@@ -7,7 +7,7 @@ from utils.variables import DEFAULT_SETTINGS
 
 def s_apply(MainWindow: ctk.CTk):
     ctk.set_appearance_mode(MainWindow.settings['theme'])
-    try: ctk.set_default_color_theme(MainWindow.resource_path(f'{MainWindow.settings["main_theme"].lower()}.json'))
+    try: ctk.set_default_color_theme(MainWindow.resource_path(f'assets/{MainWindow.settings["main_theme"].lower()}.json'))
     except: ctk.set_default_color_theme(f'assets/{MainWindow.settings["main_theme"].lower()}.json')
     for window in MainWindow.all_children + [MainWindow]:
         for widget in window.winfo_children():

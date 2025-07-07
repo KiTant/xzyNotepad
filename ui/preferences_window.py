@@ -114,7 +114,7 @@ class PreferencesWindow(ctk.CTkToplevel):
             self.MainWindow.settings = DEFAULT_SETTINGS.copy()
             self.set_vars()
         ctk.set_appearance_mode(self.theme_var.get())
-        try: ctk.set_default_color_theme(self.resource_path(f'{self.main_themes.get().lower()}.json'))
+        try: ctk.set_default_color_theme(self.resource_path(f'assets/{self.main_themes.get().lower()}.json'))
         except: ctk.set_default_color_theme(f'assets/{self.main_themes.get().lower()}.json')
         for window in self.MainWindow.all_children + [self.MainWindow]:
             for widget in window.winfo_children():
@@ -144,7 +144,7 @@ class PreferencesWindow(ctk.CTkToplevel):
         self.main_themes.select(list(MAIN_THEMES.keys())[list(MAIN_THEMES.values()).index(self.MainWindow.settings["main_theme"].title())])
 
     def place_icon(self):
-        try: self.iconbitmap(self.resource_path('xzy-notepad-icon.ico'))
+        try: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico'))
         except: self.iconbitmap('assets/xzy-notepad-icon.ico')
 
     def change_language(self):
