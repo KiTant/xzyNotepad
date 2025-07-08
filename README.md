@@ -14,6 +14,7 @@ An open-source versatile notepad designed specifically for writing and editing c
 - requests
 - re
 - webbrowser
+- pyperclip
 
 ## You can view the small ["guide"](https://github.com/KiTant/xzyNotepad/blob/master/assets/xzyNotepadGuide.html) page for more information (you need to download and run it in a browser)
 

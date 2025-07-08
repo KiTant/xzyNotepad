@@ -5,7 +5,7 @@ import webbrowser
 from CTkMessagebox import CTkMessagebox
 from ui.find_window import SearchWindow
 from utils.helpers import show_soon, get_selected_text
-
+import pyperclip
 
 class TextMenu(tkinter.Menu):
     def __init__(self, Window, MainWindow, fg_color=None, text_color=None, hover_color=None, **kwargs):
@@ -58,8 +58,7 @@ class TextMenu(tkinter.Menu):
 
     def copy_text(self):
         try:
-            self.clipboard_clear()
-            self.clipboard_append(self.Window.codebox.get(tkinter.SEL_FIRST, tkinter.SEL_LAST))
+            pyperclip.copy(self.Window.codebox.get(tkinter.SEL_FIRST, tkinter.SEL_LAST))
         except tkinter.TclError:
             pass
 
@@ -68,10 +67,10 @@ class TextMenu(tkinter.Menu):
         try:
             self.Window.change_history()
             if text is None:
-                self.Window.codebox.insert(self.Window.codebox.index('insert'), self.clipboard_get())
+                self.Window.codebox.insert(self.Window.codebox.index('insert'), pyperclip.paste())
             else:
                 self.Window.codebox.delete(text['start'], text['end'])
-                self.Window.codebox.insert(text['start'], self.clipboard_get())
+                self.Window.codebox.insert(text['start'], pyperclip.paste())
             self.Window.change_history()
             self.Window.codebox.line_nums.redraw()
         except tkinter.TclError:

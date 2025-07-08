@@ -7,28 +7,32 @@ import html
 import hashlib
 
 
-def cw_binder(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
+def on_key_press(event, MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
     from utils.helpers import save_file, open_file, start_file, new_file, show_preferences
+    if event.char == '\x13': save_file(MainWindow, Window, Window.full_file_path, False, True)  # Ctrl + S
+    elif event.char == '\x17': start_file(Window, Window.full_file_path)  # Ctrl + W
+    elif event.char == '\x10': show_preferences(MainWindow, True)  # Ctrl + P
+    elif event.char == '\x0f': open_file(MainWindow, Window, True)  # Ctrl + O
+    elif event.char == '\x0e': new_file(MainWindow, True)  # Ctrl + N
+    elif event.char == '\x04': Window.codebox.text_menu.open_containing_folder()  # Ctrl + D
+    elif event.char == '\x06': Window.codebox.text_menu.find_replace_text()  # Ctrl + F
+    elif event.char == '\x15' or event.char == '\x1a': Window.codebox.text_menu.undo_text()  # Ctrl + U or Ctrl + Z
+    elif event.char == '\x12': Window.codebox.text_menu.redo_text()  # Ctrl + R
+    elif event.char == '\x18': Window.codebox.text_menu.cut_text()  # Ctrl + X
+    elif event.char == '\x03': Window.codebox.text_menu.copy_text()  # Ctrl + C
+    elif event.char == '\x16': Window.codebox.text_menu.paste_text()  # Ctrl + V
+
+
+def cw_binder(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
     Window.unbind_class("Text", "<<Paste>>")
     Window.unbind_class("Text", "<<Copy>>")
     Window.unbind_class("Text", "<<Cut>>")
     Window.unbind_class("Text", "<<Undo>>")
     Window.unbind_class("Text", "<<Redo>>")
+    Window.unbind_class("Text", "<<SelectAll>>")
     Window.codebox.bind("<Tab>", lambda event: cw_tab(event, MainWindow.settings["indent_space"]))
     Window.codebox.bind("<<Modified>>", lambda event: cw_updated(Window, MainWindow))
-    Window.bind("<Control-s>", lambda event: save_file(MainWindow, Window, Window.full_file_path, False, True))
-    Window.bind("<Control-w>", lambda event: start_file(Window, Window.full_file_path))
-    Window.bind("<Control-p>", lambda event: show_preferences(MainWindow, True))
-    Window.bind("<Control-o>", lambda event: open_file(MainWindow, Window, True))
-    Window.bind("<Control-n>", lambda event: new_file(MainWindow, True))
-    Window.bind("<Control-d>", lambda event: Window.codebox.text_menu.open_containing_folder())
-    Window.bind("<Control-f>", lambda event: Window.codebox.text_menu.find_replace_text())
-    Window.bind("<Control-u>", lambda event: Window.codebox.text_menu.undo_text())
-    Window.bind("<Control-z>", lambda event: Window.codebox.text_menu.undo_text())
-    Window.bind("<Control-r>", lambda event: Window.codebox.text_menu.redo_text())
-    Window.bind("<Control-x>", lambda event: Window.codebox.text_menu.cut_text())
-    Window.bind("<Control-c>", lambda event: Window.codebox.text_menu.copy_text())
-    Window.bind("<Control-v>", lambda event: Window.codebox.text_menu.paste_text())
+    Window.bind("<Key>", lambda e: on_key_press(e, MainWindow, Window))
 
 
 def cw_close(Window: ctk.CTk or ctk.CTkToplevel, all_children):

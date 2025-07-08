@@ -2,6 +2,7 @@ from tkinter import font
 from tkinter import Tk
 import customtkinter as ctk
 from utils.helpers import close_window
+import pyperclip
 
 
 def show_font_families(app):
@@ -9,7 +10,7 @@ def show_font_families(app):
     for i, item in enumerate(app.fonts):
         label = ctk.CTkLabel(app.frame, text=item, font=(item, 16))
         label.grid(row=i)
-        label.bind("<Button-1>", lambda e, item=item: [app.clipboard_clear(), app.clipboard_append(item)])
+        label.bind("<Button-1>", lambda e, item=item: pyperclip.copy(item))
         listnumber += 1
 
 
