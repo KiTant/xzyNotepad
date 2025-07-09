@@ -65,7 +65,7 @@ def check_last_version(MainWindow: ctk.CTk):
                     MainWindow.updating = False
                     return
                 for asset in latest_release['assets']:
-                    if asset['name'].strip() == "xzyNotepad.exe":
+                    if asset['name'].strip().startswith("xzyNotepad") and asset['name'].strip().endswith(".exe"):
                         found_file = True
                         download_last_release(MainWindow, latest_release['tag_name'])
                 if found_file is False:

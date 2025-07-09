@@ -39,6 +39,8 @@ def f_open(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, binded: bool
         if hasattr(window, 'codebox'):
             window.menu = TitleMenu(MainWindow, window)
             MainWindow.all_titles_menu.append(window.menu)
+            if window.menu != Window.menu:
+                window.menu.after(125, window.menu.withdraw)
 
 
 def f_save_as(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, ext="py", binded: bool = False):
@@ -69,6 +71,8 @@ def f_save_as(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, ext="py",
         if hasattr(window, 'codebox'):
             window.menu = TitleMenu(MainWindow, window)
             MainWindow.all_titles_menu.append(window.menu)
+            if window.menu != Window.menu:
+                window.menu.after(125, window.menu.withdraw)
 
 
 def f_save(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, full_file_path, auto=False, binded: bool = False):

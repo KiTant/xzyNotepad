@@ -229,3 +229,5 @@ class SearchWindow(customtkinter.CTkToplevel):
             if hasattr(window, 'codebox'):
                 window.menu = TitleMenu(self.MainWindow, window)
                 self.MainWindow.all_titles_menu.append(window.menu)
+                if window.menu != self.Window.menu:
+                    window.menu.after(125, window.menu.withdraw)
