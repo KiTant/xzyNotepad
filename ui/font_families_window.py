@@ -25,8 +25,7 @@ class FontsWindow(ctk.CTkToplevel):
         self.geometry("250x400")
         self.resizable(False, False)
         self.MainWindow = MainWindow
-        try: self.iconbitmap(resource_path('assets/xzy-notepad-icon.ico'))
-        except: self.iconbitmap('assets/xzy-notepad-icon.ico')
+        self.after(150, lambda: self.iconbitmap(resource_path('assets/xzy-notepad-icon.ico')))
 
         self.root = Tk()
         self.root.withdraw()

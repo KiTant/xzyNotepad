@@ -15,11 +15,12 @@ class SearchWindow(customtkinter.CTkToplevel):
         self.maxsize(1350, 350)
         self.transient(master)
         self.grab_set()
+        self.after(300, lambda: self.iconbitmap(self.MainWindow.resource_path('assets/xzy-notepad-icon.ico')))
 
         self.MainWindow = MainWindow
         self.Window = master
         self.textbox = TextboxWidget
-        self.last_search_index = "1.0"  # To track the last found location
+        self.last_search_index = "0.0"  # To track the last found location
         self.search_direction = "forward"  # 'forward' or 'backward'
 
         self.search_frame = customtkinter.CTkFrame(self)
@@ -69,9 +70,11 @@ class SearchWindow(customtkinter.CTkToplevel):
             self._text_widget_for_tagging.tag_configure("found", background="yellow", foreground="black")
             self._text_widget_for_tagging.tag_raise("found")
         else:
-            CTkMessagebox(title="xzyNotepad", message=f"Cannot configure 'found' tag. "
-                                                      f"The provided textbox_widget (CTkCodeBox) does not "
-                                                      f"expose a standard Tkinter Text widget for tagging.", icon="warning")
+            CTkMessagebox(title="xzyNotepad",
+                          message=f"Cannot configure 'found' tag. "
+                                  f"The provided textbox_widget (CTkCodeBox) does not "
+                                  f"expose a standard Tkinter Text widget for tagging.",
+                          icon="cancel")
 
     def _get_text_widget_for_tagging(self):
         """
@@ -98,18 +101,19 @@ class SearchWindow(customtkinter.CTkToplevel):
             return
         text_widget = self._text_widget_for_tagging
         if not text_widget:
-            CTkMessagebox(title="xzyNotepad", message=f"Text widget not available for search/highlighting.", icon="cancel")
+            CTkMessagebox(title="xzyNotepad", message=f"Text widget not available for search/highlighting.",
+                          icon="cancel")
             return
         self.clear_highlights()
         start_index = self.last_search_index
         if direction == "backward":
-            if self.last_search_index == "1.0":  # If at start, wrap around to end for backward search
+            if self.last_search_index == "0.0":  # If at start, wrap around to end for backward search
                 start_index = "end"
             else:
                 # Adjust start_index for backward search to prevent re-finding the current match
                 start_index = text_widget.index(f"{self.last_search_index}-{len(search_term)}c")
 
-        end_index = "end" if direction == "forward" else "1.0"
+        end_index = "end" if direction == "forward" else "0.0"
         # Construct search pattern based on options
         pattern = re.escape(search_term)  # Escape special regex characters
         # Search text
@@ -140,12 +144,12 @@ class SearchWindow(customtkinter.CTkToplevel):
             self.search_direction = direction  # Save direction
         else:
             # Reset index to start/end of document for next search attempt
-            self.last_search_index = "1.0" if direction == "forward" else "end"
+            self.last_search_index = "0.0" if direction == "forward" else "end"
 
     def clear_highlights(self):
         text_widget = self._text_widget_for_tagging
         if text_widget:
-            text_widget.tag_remove("found", "1.0", "end")
+            text_widget.tag_remove("found", "0.0", "end")
 
     def find_next(self):
         self.find_text("forward")
@@ -173,7 +177,8 @@ class SearchWindow(customtkinter.CTkToplevel):
             # Search for the next occurrence after replacement
             self.find_next()
         else:
-            CTkMessagebox(title="xzyNotepad", message=f"No highlighted text to replace. Use 'Find' first.", icon="warning")
+            CTkMessagebox(title="xzyNotepad",  message=f"No highlighted text to replace. Use 'Find' first.",
+                          icon="warning")
 
     def replace_all(self):
         search_term = self.search_entry.get()
@@ -191,7 +196,7 @@ class SearchWindow(customtkinter.CTkToplevel):
         if not self.case_sensitive_var.get():
             flags |= re.IGNORECASE
         count = 0
-        start_index = "1.0"
+        start_index = "0.0"
         while True:
             pos = text_widget.search(
                 pattern,

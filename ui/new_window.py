@@ -13,7 +13,7 @@ class NewWindow(ctk.CTkToplevel):
         self.MainWindow = MainWindow
         self.current_language = "txt"
         self.title(f"xzyNotepad - New File.{self.current_language}")
-        self.after(300, self.place_icon)
+        self.after(300, lambda: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico')))
         self.geometry("1200x550")
 
         self.resource_path = resource_path
@@ -37,7 +37,7 @@ class NewWindow(ctk.CTkToplevel):
         code_window_binder(self.MainWindow, self)
         self.menu = TitleMenu(self.MainWindow, self)
 
-        self.protocol("WM_DELETE_WINDOW", self.activate_destroy)
+        self.protocol("WM_DELETE_WINDOW", lambda: close_code_window(self, self.MainWindow.all_children))
         self.MainWindow.all_children.append(self)
         self.MainWindow.all_titles_menu.append(self.menu)
 
@@ -56,10 +56,4 @@ class NewWindow(ctk.CTkToplevel):
                 self.history.pop(0)
             self.history_index = len(self.history) - 1
 
-    def place_icon(self):
-        try: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico'))
-        except: self.iconbitmap('assets/xzy-notepad-icon.ico')
-
     def winfo_name(self): return '!toplevel'
-
-    def activate_destroy(self): close_code_window(self, self.MainWindow.all_children)

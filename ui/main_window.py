@@ -1,6 +1,6 @@
 import customtkinter as ctk
 from CTkCodeBox import CTkCodeBox
-from utils.helpers import code_window_binder, close_code_window, save_file, save_settings, load_settings, load_previous_settings
+from utils.helpers import code_window_binder, close_code_window, save_file, load_settings, load_previous_settings
 from utils.variables import LANGUAGES, DEFAULT_SETTINGS
 from ui.code_window_menu import TextMenu
 from ui.line_nums_codebox import AddLineNums
@@ -13,8 +13,7 @@ class MainWindow(ctk.CTk):
         self.current_language = "txt"
         self.title(f"xzyNotepad - New File.{self.current_language}")
         self.geometry("1200x550")
-        try: self.iconbitmap(resource_path('assets/xzy-notepad-icon.ico'))
-        except: self.iconbitmap('assets/xzy-notepad-icon.ico')
+        self.after(150, lambda: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico')))
 
         self.resource_path = resource_path
         self.disable_updating_code = False

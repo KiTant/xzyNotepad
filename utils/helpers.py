@@ -1,12 +1,11 @@
 import customtkinter as ctk
 import webbrowser
-from utils.code_window_manager import cw_binder, cw_close, cw_updated, cw_tab, cw_time, cw_encode_base, cw_decode_base, \
-cw_encode_ascii, cw_decode_ascii, cw_encode_binary, cw_decode_binary, cw_encode_octal, cw_decode_octal, cw_encode_decimal, cw_decode_decimal, \
-cw_encode_hexadecimal, cw_decode_hexadecimal, cw_encode_html, cw_decode_html, cw_convert_values, cw_hash, cw_get_selected
-from utils.updater import check_last_version, download_last_release
-from utils.file_manager import f_save, f_save_as, f_open, f_start
-from utils.ui_manager import w_close, w_new_file, w_show_soon, w_show_font_families, w_show_preferences, w_show_about
-from utils.settings_manager import s_save, s_load, s_previous_load
+from utils.code_window_manager import *
+from utils.updater import check_last_version
+from utils.file_manager import *
+from utils.ui_manager import *
+from utils.settings_manager import *
+from CTkColorPicker.ctk_color_picker import AskColor
 
 
 def save_settings(MainWindow: ctk.CTk, file):
@@ -49,12 +48,13 @@ def save_as_file(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, ext="t
     f_save_as(MainWindow, Window, ext, binded)
 
 
-def save_file(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, full_file_path, auto=False, binded: bool = False):
+def save_file(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, full_file_path,
+              auto=False, binded: bool = False):
     f_save(MainWindow, Window, full_file_path, auto, binded)
 
 
-def start_file(Window: ctk.CTk or ctk.CTkToplevel, full_file_path):
-    f_start(Window, full_file_path)
+def start_file(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, full_file_path, binded: bool = False):
+    f_start(MainWindow, Window, full_file_path, binded)
 
 
 def close_window(Window: ctk.CTk or ctk.CTkToplevel, MainWindow: ctk.CTk):
@@ -149,6 +149,10 @@ def show_about(MainWindow: ctk.CTk):
     w_show_about(MainWindow)
 
 
+def show_assistant_chat(MainWindow: ctk.CTk, message=None):
+    w_show_ai_assistant(MainWindow, message)
+
+
 def check_updates(MainWindow: ctk.CTk):
     check_last_version(MainWindow)
 
@@ -175,3 +179,26 @@ def check_docs(Window: ctk.CTk or ctk.CTkToplevel):
             webbrowser.open(f'https://www.w3schools.com/{W3_LANGUAGES[file_type]}')
             return None
     webbrowser.open(f'https://www.google.com/search?q={Window.current_language}+file+type')
+
+
+def color_picker(Window: ctk.CTk or ctk.CTkToplevel, resource_path):
+    color_pick = AskColor(title="Choose Color (HEX)")
+    color_pick.after(300, lambda: color_pick.iconbitmap(resource_path('assets/xzy-notepad-icon.ico')))
+    color = color_pick.get()
+    if color is not None:
+        text = get_selected_text(Window)
+        Window.change_history()
+        if text is not None:
+            Window.codebox.delete(text['start'], text['end'])
+            Window.codebox.insert(text['start'], str(color))
+        else:
+            Window.codebox.insert("insert", str(color))
+        Window.change_history()
+
+__all__ = ["save_settings", "load_settings", "load_previous_settings", "code_window_binder", "close_code_window",
+           "code_updated", "insert_tab", "insert_time", "open_file", "save_as_file", "save_file", "start_file",
+           "close_window", "get_selected_text", "hash_text", "encode_base", "decode_base", "encode_ascii",
+           "decode_ascii", "encode_html", "decode_html", "encode_binary", "decode_binary", "encode_octal",
+           "decode_octal", "encode_decimal", "decode_decimal", "encode_hexadecimal", "decode_hexadecimal",
+           "convert_value", "new_file", "show_soon", "show_font_families", "show_preferences", "show_about",
+           "show_assistant_chat", "check_updates", "convert_into", "check_docs", "color_picker"]

@@ -4,16 +4,20 @@ import tkinter
 import webbrowser
 from CTkMessagebox import CTkMessagebox
 from ui.find_window import SearchWindow
-from utils.helpers import show_soon, get_selected_text
+from utils.helpers import get_selected_text, show_assistant_chat
 import pyperclip
+
 
 class TextMenu(tkinter.Menu):
     def __init__(self, Window, MainWindow, fg_color=None, text_color=None, hover_color=None, **kwargs):
         super().__init__(tearoff=False, title="menu", borderwidth=0, bd=0, relief="flat", **kwargs)
 
-        self.fg_color = customtkinter.ThemeManager.theme["CTkFrame"]["top_fg_color"] if fg_color is None else fg_color
-        self.text_color = customtkinter.ThemeManager.theme["CTkLabel"]["text_color"] if text_color is None else text_color
-        self.hover_color = customtkinter.ThemeManager.theme["CTkButton"]["hover_color"] if hover_color is None else hover_color
+        self.fg_color = customtkinter.ThemeManager.theme["CTkFrame"]["top_fg_color"] \
+            if fg_color is None else fg_color
+        self.text_color = customtkinter.ThemeManager.theme["CTkLabel"]["text_color"] \
+            if text_color is None else text_color
+        self.hover_color = customtkinter.ThemeManager.theme["CTkButton"]["hover_color"] \
+            if hover_color is None else hover_color
 
         self.Window = Window
         self.MainWindow = MainWindow
@@ -35,7 +39,9 @@ class TextMenu(tkinter.Menu):
         self.add_separator()
         self.add_command(label="Open Containing Folder", command=self.open_containing_folder)
         self.add_command(label="Search in Browser", command=self.search_in_browser)
-        self.add_command(label="Ask with AI (Soon)", command=show_soon)
+        self.add_command(label="Ask with AI",
+                         command=lambda: show_assistant_chat(MainWindow, f'What does it mean: '
+                                                                         f'"{self.MainWindow.codebox.get(tkinter.SEL_FIRST, tkinter.SEL_LAST)[:-1]}"'))
 
         self.Window.bind("<Button-3>", lambda event: self.do_popup(event))
         self.Window.bind("<Button-2>", lambda event: self.do_popup(event))
@@ -46,23 +52,30 @@ class TextMenu(tkinter.Menu):
                        activebackground=self.Window.codebox._apply_appearance_mode(self.hover_color))
         self.tk_popup(event.x_root+10, event.y_root+5)
 
-    def cut_text(self):
-        self.copy_text()
-        try:
-            self.Window.change_history()
-            self.Window.codebox.delete(tkinter.SEL_FIRST, tkinter.SEL_LAST)
-            self.Window.change_history()
-            self.Window.codebox.line_nums.redraw()
-        except tkinter.TclError:
-            pass
+    def cut_text(self, binded: bool = False):
+        if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
+            return
+        if self.copy_text() is not False:
+            try:
+                self.Window.change_history()
+                self.Window.codebox.delete(tkinter.SEL_FIRST, tkinter.SEL_LAST)
+                self.Window.change_history()
+                self.Window.codebox.line_nums.redraw()
+            except tkinter.TclError:
+                pass
 
-    def copy_text(self):
+    def copy_text(self, binded: bool = False):
+        if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
+            return
         try:
             pyperclip.copy(self.Window.codebox.get(tkinter.SEL_FIRST, tkinter.SEL_LAST))
         except tkinter.TclError:
-            pass
+            CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+            return False
 
-    def paste_text(self):
+    def paste_text(self, binded: bool = False):
+        if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
+            return
         text = get_selected_text(self.Window)
         try:
             self.Window.change_history()
@@ -91,7 +104,9 @@ class TextMenu(tkinter.Menu):
         except tkinter.TclError:
             pass
 
-    def undo_text(self):
+    def undo_text(self, binded: bool = False):
+        if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
+            return
         try:
             if self.Window.history_index > 0:
                 self.Window.history_index -= 1
@@ -108,11 +123,14 @@ class TextMenu(tkinter.Menu):
                 self.Window.codebox.see("end")
                 self.Window.codebox.line_nums.redraw()
             else:
-                CTkMessagebox(title="xzyNotepad", message=f"Error during undo: There is nothing to undo", icon="warning")
+                CTkMessagebox(title="xzyNotepad", message=f"Error during undo: There is nothing to undo",
+                              icon="warning")
         except tkinter.TclError as e:
-            CTkMessagebox(title="xzyNotepad", message=f"Error during undo: {e}", icon="warning")
+            CTkMessagebox(title="xzyNotepad", message=f"Error during undo: {e}", icon="cancel")
 
-    def redo_text(self):
+    def redo_text(self, binded: bool = False):
+        if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
+            return
         try:
             if self.Window.history_index < len(self.Window.history) - 1:
                 self.Window.history_index += 1
@@ -122,23 +140,29 @@ class TextMenu(tkinter.Menu):
                 self.Window.codebox.see("end")
                 self.Window.codebox.line_nums.redraw()
             else:
-                CTkMessagebox(title="xzyNotepad", message=f"Error during redo: There is nothing to redo", icon="warning")
+                CTkMessagebox(title="xzyNotepad", message=f"Error during redo: There is nothing to redo",
+                              icon="warning")
         except tkinter.TclError as e:
-            CTkMessagebox(title="xzyNotepad", message=f"Error during redo: {e}", icon="warning")
+            CTkMessagebox(title="xzyNotepad", message=f"Error during redo: {e}", icon="cancel")
 
     def clear_history(self):
         self.Window.history = [self.Window.codebox.get(0.0, "end")[:-1]]
         self.Window.history_index = 0
 
-    def find_replace_text(self):
+    def find_replace_text(self, binded: bool = False):
+        if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
+            return
         for window in self.MainWindow.all_children + [self.MainWindow]:
             if hasattr(window, 'codebox'):
                 self.MainWindow.all_titles_menu.remove(window.menu)
                 window.menu.destroy()
                 window.menu = None
-        self.FindWindow = SearchWindow(master=self.Window, TextboxWidget=self.Window.codebox, MainWindow=self.MainWindow)
+        self.FindWindow = SearchWindow(master=self.Window, TextboxWidget=self.Window.codebox,
+                                       MainWindow=self.MainWindow)
 
-    def open_containing_folder(self):
+    def open_containing_folder(self, binded: bool = False):
+        if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
+            return
         self.file_path = self.MainWindow.full_file_path
         if self.file_path and os.path.exists(self.file_path):
             folder_path = os.path.dirname(self.file_path)
@@ -150,7 +174,9 @@ class TextMenu(tkinter.Menu):
             else:
                 CTkMessagebox(title="xzyNotepad", message=f"Path is not a directory: {folder_path}", icon="cancel")
         else:
-            CTkMessagebox(title="xzyNotepad", message=f"File path not set or file does not exist. Cannot open containing folder", icon="warning")
+            CTkMessagebox(title="xzyNotepad",
+                          message=f"File path not set or file does not exist. Cannot open containing folder",
+                          icon="warning")
 
     def search_in_browser(self):
         try:
@@ -161,7 +187,3 @@ class TextMenu(tkinter.Menu):
                 CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
         except tkinter.TclError:
             CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
-
-    def ask_with_ai(self):
-        return
-        # Soon

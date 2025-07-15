@@ -11,22 +11,17 @@ class AboutWindow(ctk.CTkToplevel):
 
         self.title("About")
         self.geometry("300x200")
-        self.after(300, self.place_icon)
+        self.after(300, lambda: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico')))
         self.resource_path = resource_path
 
-        about_text = f"xzyNotepad\nVersion {VERSION}\n\nAn open-source versatile notepad \ndesigned specifically for writing and editing code \nin various programming languages."
+        about_text = f"xzyNotepad\nVersion {VERSION}" \
+                     f"\n\nAn open-source versatile notepad" \
+                     f" \ndesigned specifically for writing and editing code \nin various programming languages."
         ctk.CTkLabel(self, text=about_text, justify="center").pack(expand=True)
-        ctk.CTkButton(self, text="Open guide (in browser)", width=150, height=50, command=self.open_guide,
+        ctk.CTkButton(self, text="Open guide (in browser)", width=150, height=50,
+                      command=lambda: os.startfile(self.resource_path('assets/xzyNotepadGuide.html')),
                       font=ctk.CTkFont(family='Arial', size=15)).pack(expand=True)
         MainWindow.all_children.append(self)
         self.protocol("WM_DELETE_WINDOW", lambda: close_window(self, self.MainWindow))
 
         self.after(100, lambda: self.focus_set())
-
-    def place_icon(self):
-        try: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico'))
-        except: self.iconbitmap('assets/xzy-notepad-icon.ico')
-
-    def open_guide(self):
-        try: os.startfile(self.resource_path('assets/xzyNotepadGuide.html'))
-        except: os.startfile(os.path.join('assets\\xzyNotepadGuide.html'))

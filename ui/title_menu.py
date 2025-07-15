@@ -1,10 +1,7 @@
 from CTkMenuBar import *
 import customtkinter as ctk
 from customtkinter.windows.widgets.theme.theme_manager import ThemeManager
-from utils.helpers import open_file, save_as_file, check_updates, save_file, start_file, show_about, new_file, show_preferences, show_soon, \
-    load_settings, save_settings, insert_time, check_docs, encode_base, decode_base, encode_ascii, decode_ascii, encode_binary, \
-    decode_binary, encode_octal, decode_octal, encode_decimal, decode_decimal, encode_hexadecimal, decode_hexadecimal, \
-    encode_html, decode_html, convert_value, hash_text
+from utils.helpers import *
 
 
 class TitleMenu(CTkTitleMenu):
@@ -16,20 +13,30 @@ class TitleMenu(CTkTitleMenu):
         self.Settings_Button = self.add_cascade("Settings")
         self.About_Button = self.add_cascade("About", command=lambda: show_about(MainWindow))
 
-        self.File_Dropdown = CustomDropdownMenu(widget=self.File_Button, hover_color=ThemeManager.theme["CTkButton"]["fg_color"])
+        self.File_Dropdown = CustomDropdownMenu(widget=self.File_Button,
+                                                hover_color=ThemeManager.theme["CTkButton"]["fg_color"])
         self.File_Dropdown.add_option(option="New (Ctrl + N)", command=lambda: new_file(MainWindow))
         self.File_Dropdown.add_option(option="Open (Ctrl + O)", command=lambda: open_file(MainWindow, CurrentWindow))
-        self.File_Dropdown.add_option(option="Save (Ctrl + S)", command=lambda: save_file(MainWindow, CurrentWindow, CurrentWindow.full_file_path, False))
-        self.File_Dropdown.add_option(option="Save as", command=lambda: save_as_file(MainWindow, CurrentWindow, CurrentWindow.current_language))
+        self.File_Dropdown.add_option(option="Save (Ctrl + S)",
+                                      command=lambda:
+                                      save_file(MainWindow, CurrentWindow, CurrentWindow.full_file_path, False))
+        self.File_Dropdown.add_option(option="Save as",
+                                      command=lambda:
+                                      save_as_file(MainWindow, CurrentWindow, CurrentWindow.current_language))
         self.File_Dropdown.add_separator()
-        self.File_Dropdown.add_option(option="Start", command=lambda: start_file(CurrentWindow, None))
-        self.File_Dropdown.add_option(option="Start (saved file, if exists)", command=lambda: start_file(CurrentWindow, CurrentWindow.full_file_path))
+        self.File_Dropdown.add_option(option="Start", command=lambda: start_file(MainWindow, CurrentWindow, None))
+        self.File_Dropdown.add_option(option="Start (saved file, if exists)",
+                                      command=lambda:
+                                      start_file(MainWindow, CurrentWindow, CurrentWindow.full_file_path))
 
-        self.Edit_Dropdown = CustomDropdownMenu(widget=self.Edit_Button, hover_color=ThemeManager.theme["CTkButton"]["fg_color"])
-        self.Edit_Dropdown.add_option(option="Chat with AI (Soon)", command=show_soon)
-        self.Edit_Dropdown.add_separator()
+        self.Edit_Dropdown = CustomDropdownMenu(widget=self.Edit_Button,
+                                                hover_color=ThemeManager.theme["CTkButton"]["fg_color"])
+        self.Edit_Dropdown.add_option(option="Chat with AI", command=lambda: show_assistant_chat(MainWindow))
         self.Edit_Dropdown.add_option(option="Paste current time", command=lambda: insert_time(CurrentWindow))
-        self.Edit_Dropdown.add_option(option="Check docs about this file type", command=lambda: check_docs(CurrentWindow))
+        self.Edit_Dropdown.add_option(option="Color picker",
+                                      command=lambda: color_picker(CurrentWindow, MainWindow.resource_path))
+        self.Edit_Dropdown.add_option(option="Check docs about this file type",
+                                      command=lambda: check_docs(CurrentWindow))
 
         self.Edit_Dropdown.add_separator()
         self.Encoders = self.Edit_Dropdown.add_submenu("Encoders >")
@@ -47,9 +54,12 @@ class TitleMenu(CTkTitleMenu):
         self.EncodersNumeral.add_option(option="Encode to octal code", command=lambda: encode_octal(CurrentWindow))
         self.EncodersNumeral.add_option(option="Decode from octal code", command=lambda: decode_octal(CurrentWindow))
         self.EncodersNumeral.add_option(option="Encode to decimal code", command=lambda: encode_decimal(CurrentWindow))
-        self.EncodersNumeral.add_option(option="Decode from decimal code", command=lambda: decode_decimal(CurrentWindow))
-        self.EncodersNumeral.add_option(option="Encode to hexadecimal code", command=lambda: encode_hexadecimal(CurrentWindow))
-        self.EncodersNumeral.add_option(option="Decode from hexadecimal code", command=lambda: decode_hexadecimal(CurrentWindow))
+        self.EncodersNumeral.add_option(option="Decode from decimal code",
+                                        command=lambda: decode_decimal(CurrentWindow))
+        self.EncodersNumeral.add_option(option="Encode to hexadecimal code",
+                                        command=lambda: encode_hexadecimal(CurrentWindow))
+        self.EncodersNumeral.add_option(option="Decode from hexadecimal code",
+                                        command=lambda: decode_hexadecimal(CurrentWindow))
         self.Encoders.add_option(option="Encode to ASCII", command=lambda: encode_ascii(CurrentWindow))
         self.Encoders.add_option(option="Decode from ASCII", command=lambda: decode_ascii(CurrentWindow))
         self.Encoders.add_option(option="Encode to HTML entities", command=lambda: encode_html(CurrentWindow))
@@ -87,10 +97,14 @@ class TitleMenu(CTkTitleMenu):
         self.HashersSHA3.add_option(option="Hash to SHA3_384", command=lambda: hash_text(CurrentWindow, "sha3_384"))
         self.HashersSHA3.add_option(option="Hash to SHA3_512", command=lambda: hash_text(CurrentWindow, "sha3_512"))
 
-        self.Settings_Dropdown = CustomDropdownMenu(widget=self.Settings_Button, hover_color=ThemeManager.theme["CTkButton"]["fg_color"])
+        self.Settings_Dropdown = CustomDropdownMenu(widget=self.Settings_Button,
+                                                    hover_color=ThemeManager.theme["CTkButton"]["fg_color"])
         self.Settings_Dropdown.add_option(option="Preferences (Ctrl + P)", command=lambda: show_preferences(MainWindow))
-        self.Settings_Dropdown.add_option(option="Load settings", command=lambda: load_settings(MainWindow, MainWindow.settings_file, set_vars=True))
-        self.Settings_Dropdown.add_option(option="Save settings", command=lambda: save_settings(MainWindow, MainWindow.settings_file))
+        self.Settings_Dropdown.add_option(option="Load settings",
+                                          command=lambda:
+                                          load_settings(MainWindow, MainWindow.settings_file, set_vars=True))
+        self.Settings_Dropdown.add_option(option="Save settings",
+                                          command=lambda: save_settings(MainWindow, MainWindow.settings_file))
         self.Settings_Dropdown.add_option(option="Check updates (Ctrl + U)", command=lambda: check_updates(MainWindow))
 
         self.after(100, self.change_dimension)

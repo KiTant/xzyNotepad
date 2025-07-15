@@ -14,7 +14,8 @@ class PreferencesWindow(ctk.CTkToplevel):
         self.MainWindow = MainWindow
         self.title("Preferences")
         self.geometry("1000x400")
-        self.after(300, self.place_icon)
+        self.resizable(False, False)
+        self.after(300, lambda: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico')))
 
         self.resource_path = resource_path
 
@@ -56,39 +57,43 @@ class PreferencesWindow(ctk.CTkToplevel):
         ctk.CTkRadioButton(self, text="Enabled", variable=self.auto_save, value="Enabled").place(relx=0.3, rely=0.4)
         ctk.CTkRadioButton(self, text="Disabled", variable=self.auto_save, value="Disabled").place(relx=0.3, rely=0.5)
 
-        ctk.CTkLabel(self, text="Auto Save (file):").place(relx=0.285, rely=0.01)
+        ctk.CTkLabel(self, text="Auto Save (file):").place(relx=0.3, rely=0.01)
         self.auto_save_file = ctk.StringVar(value=self.MainWindow.settings["auto_save_file"])
-        ctk.CTkRadioButton(self, text="Enabled", variable=self.auto_save_file, value="Enabled").place(relx=0.285, rely=0.1)
-        ctk.CTkRadioButton(self, text="Disabled", variable=self.auto_save_file, value="Disabled").place(relx=0.285, rely=0.2)
+        ctk.CTkRadioButton(self, text="Enabled", variable=self.auto_save_file, value="Enabled").place(relx=0.3, rely=0.1)
+        ctk.CTkRadioButton(self, text="Disabled", variable=self.auto_save_file, value="Disabled").place(relx=0.3, rely=0.2)
 
         ctk.CTkLabel(self, text="Codebox Theme (text):").place(relx=0.45, rely=0.01)
         self.codebox_themes = CTkListbox(self, width=125, font=ctk.CTkFont(family="Arial", size=12),
                                          hover_color=ThemeManager.theme["CTkOptionMenu"]["button_hover_color"],
                                          highlight_color=ThemeManager.theme["CTkButton"]["hover_color"])
-        self.codebox_themes.place(relx=0.45, rely=0.1, relheight=0.35)
+        self.codebox_themes.place(relx=0.45, rely=0.1, relheight=0.5)
         for theme in THEMES.values():
             self.codebox_themes.insert("END", theme)
         self.codebox_themes.select(list(THEMES.keys())[list(THEMES.values()).index(self.MainWindow.settings["codebox_theme"])])
 
         ctk.CTkButton(self, text="Check all codebox themes (text)", width=70, height=25,
                       command=lambda: webbrowser.open('https://pygments.org/styles/'),
-                      font=ctk.CTkFont(family='Arial', size=10)).place(relx=0.445, rely=0.45)
+                      font=ctk.CTkFont(family='Arial', size=13)).place(relx=0.425, rely=0.625)
 
         ctk.CTkLabel(self, text="Main Theme:").place(relx=0.65, rely=0.01)
         self.main_themes = CTkListbox(self, width=125, font=ctk.CTkFont(family="Arial", size=12),
                                       hover_color=ThemeManager.theme["CTkOptionMenu"]["button_hover_color"],
                                       highlight_color=ThemeManager.theme["CTkButton"]["hover_color"])
-        self.main_themes.place(relx=0.65, rely=0.1, relheight=0.35)
+        self.main_themes.place(relx=0.65, rely=0.1, relheight=0.5)
         for theme in MAIN_THEMES.values():
             self.main_themes.insert("END", theme)
         self.main_themes.select(list(MAIN_THEMES.keys())[list(MAIN_THEMES.values()).index(self.MainWindow.settings["main_theme"].title())])
 
         self.MainWindow.all_children.append(self)
 
-        ctk.CTkButton(self, text="Apply (with auto save)", command=self.apply_preferences).place(relx=0.02, rely=0.9)
-        ctk.CTkButton(self, text="Apply default settings", command=lambda: self.apply_preferences(True)).place(relx=0.2, rely=0.9)
-        ctk.CTkButton(self, text="Apply previous settings", command=self.apply_previous_preferences).place(relx=0.4, rely=0.9)
-        ctk.CTkButton(self, text="Check available font families", command=lambda: show_font_families(self.MainWindow)).place(relx=0.6, rely=0.9)
+        ctk.CTkButton(self, text="Apply (with auto save)", font=ctk.CTkFont(family="Arial", size=15), corner_radius=15,
+                      command=self.apply_preferences, width=160, height=35).place(relx=0.01, rely=0.9)
+        ctk.CTkButton(self, text="Apply default settings", font=ctk.CTkFont(family="Arial", size=15), corner_radius=15,
+                      command=lambda: self.apply_preferences(True), width=180, height=35).place(relx=0.2, rely=0.9)
+        ctk.CTkButton(self, text="Apply previous settings", font=ctk.CTkFont(family="Arial", size=15), corner_radius=15,
+                      command=self.apply_previous_preferences, width=160, height=35).place(relx=0.39, rely=0.9)
+        ctk.CTkButton(self, text="Check available font families", font=ctk.CTkFont(family="Arial", size=15), corner_radius=15,
+                      command=lambda: show_font_families(self.MainWindow), width=160, height=35).place(relx=0.58, rely=0.9)
 
         self.protocol("WM_DELETE_WINDOW", lambda: close_window(self, self.MainWindow))
 
@@ -114,8 +119,7 @@ class PreferencesWindow(ctk.CTkToplevel):
             self.MainWindow.settings = DEFAULT_SETTINGS.copy()
             self.set_vars()
         ctk.set_appearance_mode(self.theme_var.get())
-        try: ctk.set_default_color_theme(self.resource_path(f'assets/{self.main_themes.get().lower()}.json'))
-        except: ctk.set_default_color_theme(f'assets/{self.main_themes.get().lower()}.json')
+        ctk.set_default_color_theme(self.resource_path(f'assets/themes/{self.main_themes.get().lower()}.json'))
         for window in self.MainWindow.all_children + [self.MainWindow]:
             for widget in window.winfo_children():
                 if isinstance(widget, CTkCodeBox):
@@ -142,10 +146,6 @@ class PreferencesWindow(ctk.CTkToplevel):
         self.auto_save_file_time.insert(0, self.MainWindow.settings["auto_save_file_time"])
         self.codebox_themes.select(list(THEMES.keys())[list(THEMES.values()).index(self.MainWindow.settings["codebox_theme"])])
         self.main_themes.select(list(MAIN_THEMES.keys())[list(MAIN_THEMES.values()).index(self.MainWindow.settings["main_theme"].title())])
-
-    def place_icon(self):
-        try: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico'))
-        except: self.iconbitmap('assets/xzy-notepad-icon.ico')
 
     def change_language(self):
         pass

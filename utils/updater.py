@@ -23,10 +23,10 @@ def download_last_release(MainWindow: ctk.CTk, version):
                         message="New update successfully installed as new file in directory where storages this version."
                                 "You can delete this version and open new.")
         except:
-            stop_update(MainWindow, title="xzyNotepad (downloading update)", icon="warning",
+            stop_update(MainWindow, title="xzyNotepad (downloading update)", icon="cancel",
                         message="Unexpected error while creating new file with update.")
     else:
-        stop_update(MainWindow, title="xzyNotepad (downloading update)", icon="warning",
+        stop_update(MainWindow, title="xzyNotepad (downloading update)", icon="cancel",
                     message="Unexpected error while trying to get last release, please check your internet.")
 
 
@@ -75,5 +75,5 @@ def check_last_version(MainWindow: ctk.CTk):
             stop_update(MainWindow, title="xzyNotepad (checking updates)", icon="info",
                         message="You have latest release of xzyNotepad")
     else:
-        stop_update(MainWindow, title="xzyNotepad (checking updates)", icon="warning",
+        stop_update(MainWindow, title="xzyNotepad (checking updates)", icon="cancel",
                     message="Unexpected error while trying to get last release, please check your internet.")

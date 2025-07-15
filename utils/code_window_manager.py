@@ -8,17 +8,19 @@ import hashlib
 
 
 def on_key_press(event, MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
-    from utils.helpers import save_file, start_file, new_file, show_preferences
+    from utils.helpers import save_file, start_file, open_file, new_file, show_preferences
     if event.char == '\x13': save_file(MainWindow, Window, Window.full_file_path, False, True)  # Ctrl + S
-    elif event.char == '\x17': start_file(Window, Window.full_file_path)  # Ctrl + W
+    elif event.char == '\x17': start_file(MainWindow, Window, Window.full_file_path, True)  # Ctrl + W
     elif event.char == '\x10': show_preferences(MainWindow, True)  # Ctrl + P
     elif event.char == '\x0e': new_file(MainWindow, True)  # Ctrl + N
-    elif event.char == '\x06': Window.codebox.text_menu.find_replace_text()  # Ctrl + F
-    elif event.char == '\x15' or event.char == '\x1a': Window.codebox.text_menu.undo_text()  # Ctrl + U or Ctrl + Z
-    elif event.char == '\x12': Window.codebox.text_menu.redo_text()  # Ctrl + R
-    elif event.char == '\x18': Window.codebox.text_menu.cut_text()  # Ctrl + X
-    elif event.char == '\x03': Window.codebox.text_menu.copy_text()  # Ctrl + C
-    elif event.char == '\x16': Window.codebox.text_menu.paste_text()  # Ctrl + V
+    elif event.char == '\x04' and event.keysym != "d": Window.codebox.text_menu.open_containing_folder(True)  # Ctrl + D
+    elif event.char == '\x0f' and event.keysym != "o": open_file(MainWindow, Window, True)  # Ctrl + O
+    elif event.char == '\x06': Window.codebox.text_menu.find_replace_text(True)  # Ctrl + F
+    elif event.char == '\x15' or event.char == '\x1a': Window.codebox.text_menu.undo_text(True)  # Ctrl + U or Ctrl + Z
+    elif event.char == '\x12': Window.codebox.text_menu.redo_text(True)  # Ctrl + R
+    elif event.char == '\x18': Window.codebox.text_menu.cut_text(True)  # Ctrl + X
+    elif event.char == '\x03': Window.codebox.text_menu.copy_text(True)  # Ctrl + C
+    elif event.char == '\x16': Window.codebox.text_menu.paste_text(True)  # Ctrl + V
 
 
 def cw_binder(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
@@ -32,7 +34,7 @@ def cw_binder(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
     Window.codebox.bind("<Control-i>", lambda event: "break")
     Window.codebox.bind("<Control-h>", lambda event: "break")
     Window.codebox.bind("<Control-o>", lambda event: open_file(MainWindow, Window, True))
-    Window.codebox.bind("<Control-d>", lambda event: Window.codebox.text_menu.open_containing_folder())
+    Window.codebox.bind("<Control-d>", lambda event: Window.codebox.text_menu.open_containing_folder(True))
     Window.codebox.bind("<Tab>", lambda event: cw_tab(event, MainWindow.settings["indent_space"]))
     Window.codebox.bind("<<Modified>>", lambda event: cw_updated(Window, MainWindow))
     Window.bind("<Key>", lambda event: on_key_press(event, MainWindow, Window))
@@ -72,7 +74,7 @@ def cw_get_selected(Window: ctk.CTk or ctk.CTkToplevel):
         start, end = Window.codebox.index("sel.first"), Window.codebox.index("sel.last")
         selected_text = Window.codebox.get(start, end)
         return {"start": start, "end": end, "selected": selected_text}
-    except Exception as err:
+    except:
         return None
 
 
@@ -145,7 +147,8 @@ def cw_decode_base(Window: ctk.CTk or ctk.CTkToplevel, num):
             try:
                 decoded_text = getattr(base64, f"b{num}decode")(text['selected'].strip().encode('utf-8')).decode('utf-8')
             except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message=f"Unexpected error while trying to decode base{num}.", icon="warning")
+                CTkMessagebox(title="xzyNotepad", message=f"Unexpected error while trying to decode base{num}.",
+                              icon="cancel")
             Window.change_history()
             Window.codebox.delete(text['start'], text['end'])
             Window.codebox.insert(text['start'], decoded_text)
@@ -184,7 +187,8 @@ def cw_decode_ascii(Window: ctk.CTk or ctk.CTkToplevel):
             try:
                 chr_values = [chr(int(character)) for character in text['selected'].strip().rsplit(" ")]
             except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode ASCII.", icon="warning")
+                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode ASCII.",
+                              icon="cancel")
             decoded_text = ''.join(map(str, chr_values)) if chr_values != "nothing" else text['selected'].strip()
             Window.change_history()
             Window.codebox.delete(text['start'], text['end'])
@@ -222,8 +226,10 @@ def cw_decode_binary(Window: ctk.CTk or ctk.CTkToplevel):
             try:
                 binary_values = text['selected'].strip().split(" ")
             except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode binary.", icon="warning")
-            decoded_text = "".join([chr(int(value, 2)) for value in binary_values]) if binary_values != "nothing" else text['selected'].strip()
+                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode binary.",
+                              icon="cancel")
+            decoded_text = "".join([chr(int(value, 2)) for value in binary_values]) \
+                if binary_values != "nothing" else text['selected'].strip()
             Window.change_history()
             Window.codebox.delete(text['start'], text["end"])
             Window.codebox.insert(text['start'], decoded_text)
@@ -260,8 +266,10 @@ def cw_decode_octal(Window: ctk.CTk or ctk.CTkToplevel):
             try:
                 octal_values = text['selected'].strip().split(" ")
             except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode binary.", icon="warning")
-            decoded_text = "".join([chr(int(value, 8)) for value in octal_values]) if octal_values != "nothing" else text['selected'].strip()
+                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode binary.",
+                              icon="cancel")
+            decoded_text = "".join([chr(int(value, 8)) for value in octal_values]) \
+                if octal_values != "nothing" else text['selected'].strip()
             Window.change_history()
             Window.codebox.delete(text['start'], text["end"])
             Window.codebox.insert(text['start'], decoded_text)
@@ -298,8 +306,10 @@ def cw_decode_decimal(Window: ctk.CTk or ctk.CTkToplevel):
             try:
                 decimal_values = text['selected'].strip().split(" ")
             except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.", icon="warning")
-            decoded_text = "".join([chr(int(value, 10)) for value in decimal_values]) if decimal_values != "nothing" else text['selected'].strip()
+                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
+                              icon="cancel")
+            decoded_text = "".join([chr(int(value, 10)) for value in decimal_values]) \
+                if decimal_values != "nothing" else text['selected'].strip()
             Window.change_history()
             Window.codebox.delete(text['start'], text["end"])
             Window.codebox.insert(text['start'], decoded_text)
@@ -336,8 +346,10 @@ def cw_decode_hexadecimal(Window: ctk.CTk or ctk.CTkToplevel):
             try:
                 hexadecimal_values = text['selected'].strip().split(" ")
             except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.", icon="warning")
-            decoded_text = "".join([chr(int(value, 16)) for value in hexadecimal_values]) if hexadecimal_values != "nothing" else text['selected'].strip()
+                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
+                              icon="cancel")
+            decoded_text = "".join([chr(int(value, 16)) for value in hexadecimal_values]) \
+                if hexadecimal_values != "nothing" else text['selected'].strip()
             Window.change_history()
             Window.codebox.delete(text['start'], text["end"])
             Window.codebox.insert(text['start'], decoded_text)
@@ -373,7 +385,8 @@ def cw_decode_html(Window: ctk.CTk or ctk.CTkToplevel):
             try:
                 decoded_text = html.unescape(text['selected'].strip())
             except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.", icon="warning")
+                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
+                              icon="cancel")
             Window.change_history()
             Window.codebox.delete(text['start'], text["end"])
             Window.codebox.insert(text['start'], decoded_text)
@@ -404,7 +417,10 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
             error_message = "Invalid HEX format. 6 hexadecimal characters are expected (e.g. FF00FF)."
         else:
             try:
-                r, g, b = int(color_value_stripped[0:2], 16), int(color_value_stripped[2:4], 16), int(color_value_stripped[4:6], 16)
+                r, g, b = \
+                    int(color_value_stripped[0:2], 16), \
+                    int(color_value_stripped[2:4], 16), \
+                    int(color_value_stripped[4:6], 16)
                 if ToValue == "RGB":
                     result = f"{r}, {g}, {b}"
                 elif ToValue == "HSV":
@@ -414,7 +430,8 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
                 else:
                     error_message = f"Unsupported conversion from HEX to {ToValue}."
             except ValueError:
-                error_message = "Error when parsing the HEX value. Make sure that these are correct hexadecimal characters."
+                error_message = "Error when parsing the HEX value. " \
+                                "Make sure that these are correct hexadecimal characters."
     elif FromValue == "RGB":
         color_parts = [p.strip() for p in selected_text.lstrip("(").rstrip(")").split(",")]
         if not (len(color_parts) == 3 and all(p.isdigit() for p in color_parts)):
@@ -503,6 +520,11 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
             Window.change_history()
             Window.codebox.line_nums.redraw()
         else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="cancel")
+            CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
     else:
         return result
+
+__all__ = ["cw_binder", "cw_close", "cw_get_selected", "cw_updated", "cw_tab", "cw_time", "cw_hash",
+           "cw_encode_base", "cw_decode_base", "cw_encode_ascii", "cw_decode_ascii", "cw_encode_binary",
+           "cw_decode_binary", "cw_encode_octal", "cw_decode_octal", "cw_encode_decimal", "cw_decode_decimal",
+           "cw_encode_hexadecimal", "cw_decode_hexadecimal", "cw_encode_html", "cw_decode_html", "cw_convert_values"]

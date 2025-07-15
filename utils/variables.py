@@ -1,6 +1,8 @@
+import g4f
 from pygments import lexers
+from g4f.Provider import PollinationsAI, Copilot
 
-VERSION = "1.0.2"
+VERSION = "1.2.0"
 
 LANGUAGES = {
     'txt': lexers.TodotxtLexer,
@@ -181,4 +183,12 @@ DEFAULT_SETTINGS = {
     "auto_save_file": "Enabled",
     "auto_save_file_time": 3,
     "indent_space": 4
+}
+
+MODEL_MAP = {
+    "GPT-4": (g4f.models.gpt_4, PollinationsAI),
+    "Gemini 1.5 Flash": (g4f.models.gemini_1_5_flash, None),
+    "Llama 4 Scout": (g4f.models.llama_4_scout, None),
+    "DeepSeek R1": (g4f.models.deepseek_r1, None),
+    "Microsoft Copilot": (g4f.models.default, Copilot),
 }
