@@ -6,6 +6,7 @@ from CTkMessagebox import CTkMessagebox
 from ui.find_window import SearchWindow
 from utils.helpers import get_selected_text, show_assistant_chat
 import pyperclip
+from utils.decorators import text_change
 
 
 class TextMenu(tkinter.Menu):
@@ -52,15 +53,13 @@ class TextMenu(tkinter.Menu):
                        activebackground=self.Window.codebox._apply_appearance_mode(self.hover_color))
         self.tk_popup(event.x_root+10, event.y_root+5)
 
+    @text_change
     def cut_text(self, binded: bool = False):
         if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
             return
         if self.copy_text() is not False:
             try:
-                self.Window.change_history()
                 self.Window.codebox.delete(tkinter.SEL_FIRST, tkinter.SEL_LAST)
-                self.Window.change_history()
-                self.Window.codebox.line_nums.redraw()
             except tkinter.TclError:
                 pass
 
@@ -73,28 +72,24 @@ class TextMenu(tkinter.Menu):
             CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
             return False
 
+    @text_change
     def paste_text(self, binded: bool = False):
         if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
             return
         text = get_selected_text(self.Window)
         try:
-            self.Window.change_history()
             if text is None:
                 self.Window.codebox.insert(self.Window.codebox.index('insert'), pyperclip.paste())
             else:
                 self.Window.codebox.delete(text['start'], text['end'])
                 self.Window.codebox.insert(text['start'], pyperclip.paste())
-            self.Window.change_history()
-            self.Window.codebox.line_nums.redraw()
         except tkinter.TclError:
             pass
 
+    @text_change
     def clear_all_text(self):
         try:
-            self.Window.change_history()
             self.Window.codebox.delete(0.0, "end")
-            self.Window.change_history()
-            self.Window.codebox.line_nums.redraw()
         except tkinter.TclError:
             pass
 

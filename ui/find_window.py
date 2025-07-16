@@ -4,6 +4,7 @@ import tkinter
 from CTkMessagebox import CTkMessagebox
 from customtkinter.windows.widgets.appearance_mode import CTkAppearanceModeBaseClass
 from customtkinter.windows.widgets.scaling import CTkScalingBaseClass
+from utils.decorators import text_change
 
 
 class SearchWindow(customtkinter.CTkToplevel):
@@ -157,6 +158,7 @@ class SearchWindow(customtkinter.CTkToplevel):
     def find_previous(self):
         self.find_text("backward")
 
+    @text_change
     def replace_one(self):
         search_term = self.search_entry.get()
         replace_term = self.replace_entry.get()
@@ -168,18 +170,17 @@ class SearchWindow(customtkinter.CTkToplevel):
             return
         # Check if there is a current highlight from search
         if text_widget.tag_ranges("found"):
-            self.Window.change_history()
             start, end = text_widget.tag_ranges("found")
             text_widget.delete(start, end)
             text_widget.insert(start, replace_term)
             self.clear_highlights()  # Remove highlight after replacement
-            self.Window.change_history()
             # Search for the next occurrence after replacement
             self.find_next()
         else:
             CTkMessagebox(title="xzyNotepad",  message=f"No highlighted text to replace. Use 'Find' first.",
                           icon="warning")
 
+    @text_change
     def replace_all(self):
         search_term = self.search_entry.get()
         replace_term = self.replace_entry.get()
@@ -189,7 +190,6 @@ class SearchWindow(customtkinter.CTkToplevel):
         if not text_widget:
             CTkMessagebox(title="xzyNotepad", message=f"Text widget not available for replacement.", icon="cancel")
             return
-        self.Window.change_history()
         self.clear_highlights()
         pattern = re.escape(search_term)  # Escape special regex characters
         flags = 0
@@ -223,7 +223,6 @@ class SearchWindow(customtkinter.CTkToplevel):
             # Update start_index to continue search after the inserted text
             start_index = text_widget.index(f"{start}+{len(replace_term)}c")
         CTkMessagebox(title="xzyNotepad", message=f"Replaced {count} occurrences.", icon="info")
-        self.Window.change_history()
 
     def destroy(self):
         tkinter.Toplevel.destroy(self)

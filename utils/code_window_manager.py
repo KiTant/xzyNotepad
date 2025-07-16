@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
-from utils.converter import rgb_to_hsv, hsv_to_rgb, rgb_to_hsl, hsl_to_rgb
+from utils.converter import *
+from utils.decorators import text_change, text_check
 from time import gmtime, strftime
 import base64
 import html
@@ -94,308 +95,200 @@ def cw_tab(event, indent_space=4):
     return "break"
 
 
+@text_change
 def cw_time(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    Window.change_history()
     if text is not None:
         Window.codebox.delete(text['start'], text['end'])
         Window.codebox.insert(text['start'], str(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
     else:
         Window.codebox.insert("insert", str(strftime("%Y-%m-%d %H:%M:%S", gmtime())))
-    Window.change_history()
 
 
+@text_check(True)
+@text_change
 def cw_hash(Window: ctk.CTk or ctk.CTkToplevel, hash_type):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            Window.change_history()
-            hashed_text = getattr(hashlib, hash_type)(text['selected'].strip().encode('utf-8')).hexdigest()
-            Window.codebox.delete(text['start'], text['end'])
-            Window.codebox.insert(text['start'], hashed_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    hashed_text = getattr(hashlib, hash_type)(text['selected'].strip().encode('utf-8')).hexdigest()
+    Window.codebox.delete(text['start'], text['end'])
+    Window.codebox.insert(text['start'], hashed_text)
 
 
+@text_check(True)
+@text_change
 def cw_encode_base(Window: ctk.CTk or ctk.CTkToplevel, num):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            Window.change_history()
-            encoded_text = getattr(base64, f"b{num}encode")(text['selected'].strip().encode('utf-8')).decode('utf-8')
-            Window.codebox.delete(text['start'], text['end'])
-            Window.codebox.event_generate("<<ContentChanged>>")
-            Window.codebox.insert(text['start'], encoded_text)
-            Window.codebox.event_generate("<<ContentChanged>>")
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    encoded_text = getattr(base64, f"b{num}encode")(text['selected'].strip().encode('utf-8')).decode('utf-8')
+    Window.codebox.delete(text['start'], text['end'])
+    Window.codebox.insert(text['start'], encoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_decode_base(Window: ctk.CTk or ctk.CTkToplevel, num):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            decoded_text = text['selected'].strip()
-            try:
-                decoded_text = getattr(base64, f"b{num}decode")(text['selected'].strip().encode('utf-8')).decode('utf-8')
-            except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message=f"Unexpected error while trying to decode base{num}.",
-                              icon="cancel")
-            Window.change_history()
-            Window.codebox.delete(text['start'], text['end'])
-            Window.codebox.insert(text['start'], decoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    decoded_text = text['selected'].strip()
+    try:
+        decoded_text = getattr(base64, f"b{num}decode")(text['selected'].strip().encode('utf-8')).decode('utf-8')
+    except:
+        CTkMessagebox(title="xzyNotepad", message=f"Unexpected error while trying to decode base{num}.",
+                      icon="cancel")
+    Window.codebox.delete(text['start'], text['end'])
+    Window.codebox.insert(text['start'], decoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_encode_ascii(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            encoded_text = ""
-            ascii_values = [ord(character) for character in text['selected'].strip()]
-            for value in ascii_values:
-                encoded_text += str(value) + " "
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], encoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    encoded_text = ""
+    ascii_values = [ord(character) for character in text['selected'].strip()]
+    for value in ascii_values:
+        encoded_text += str(value) + " "
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], encoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_decode_ascii(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            chr_values = "nothing"
-            try:
-                chr_values = [chr(int(character)) for character in text['selected'].strip().rsplit(" ")]
-            except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode ASCII.",
-                              icon="cancel")
-            decoded_text = ''.join(map(str, chr_values)) if chr_values != "nothing" else text['selected'].strip()
-            Window.change_history()
-            Window.codebox.delete(text['start'], text['end'])
-            Window.codebox.insert(text['start'], decoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    chr_values = "nothing"
+    try:
+        chr_values = [chr(int(character)) for character in text['selected'].strip().rsplit(" ")]
+    except:
+        CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode ASCII.",
+                      icon="cancel")
+    decoded_text = ''.join(map(str, chr_values)) if chr_values != "nothing" else text['selected'].strip()
+    Window.codebox.delete(text['start'], text['end'])
+    Window.codebox.insert(text['start'], decoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_encode_binary(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            binary_values = ['{0:08b}'.format(ord(character)) for character in text['selected'].strip()]
-            encoded_text = " ".join(binary_values)
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], encoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    binary_values = ['{0:08b}'.format(ord(character)) for character in text['selected'].strip()]
+    encoded_text = " ".join(binary_values)
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], encoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_decode_binary(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            binary_values = "nothing"
-            try:
-                binary_values = text['selected'].strip().split(" ")
-            except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode binary.",
-                              icon="cancel")
-            decoded_text = "".join([chr(int(value, 2)) for value in binary_values]) \
-                if binary_values != "nothing" else text['selected'].strip()
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], decoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    binary_values = "nothing"
+    try:
+        binary_values = text['selected'].strip().split(" ")
+    except:
+        CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode binary.",
+                      icon="cancel")
+    decoded_text = "".join([chr(int(value, 2)) for value in binary_values]) \
+        if binary_values != "nothing" else text['selected'].strip()
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], decoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_encode_octal(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            octal_values = ['{0:03o}'.format(ord(character)) for character in text['selected'].strip()]
-            encoded_text = " ".join(octal_values)
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], encoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    octal_values = ['{0:03o}'.format(ord(character)) for character in text['selected'].strip()]
+    encoded_text = " ".join(octal_values)
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], encoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_decode_octal(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            octal_values = "nothing"
-            try:
-                octal_values = text['selected'].strip().split(" ")
-            except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode binary.",
-                              icon="cancel")
-            decoded_text = "".join([chr(int(value, 8)) for value in octal_values]) \
-                if octal_values != "nothing" else text['selected'].strip()
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], decoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    octal_values = "nothing"
+    try:
+        octal_values = text['selected'].strip().split(" ")
+    except:
+        CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode binary.",
+                      icon="cancel")
+    decoded_text = "".join([chr(int(value, 8)) for value in octal_values]) \
+        if octal_values != "nothing" else text['selected'].strip()
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], decoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_encode_decimal(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            decimal_values = ['{0:03d}'.format(ord(character)) for character in text['selected'].strip()]
-            encoded_text = " ".join(decimal_values)
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], encoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    decimal_values = ['{0:03d}'.format(ord(character)) for character in text['selected'].strip()]
+    encoded_text = " ".join(decimal_values)
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], encoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_decode_decimal(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            decimal_values = "nothing"
-            try:
-                decimal_values = text['selected'].strip().split(" ")
-            except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
-                              icon="cancel")
-            decoded_text = "".join([chr(int(value, 10)) for value in decimal_values]) \
-                if decimal_values != "nothing" else text['selected'].strip()
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], decoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    decimal_values = "nothing"
+    try:
+        decimal_values = text['selected'].strip().split(" ")
+    except:
+        CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
+                      icon="cancel")
+    decoded_text = "".join([chr(int(value, 10)) for value in decimal_values]) \
+        if decimal_values != "nothing" else text['selected'].strip()
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], decoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_encode_hexadecimal(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            hexadecimal_values = ['{0:02x}'.format(ord(character)) for character in text['selected'].strip()]
-            encoded_text = " ".join(hexadecimal_values)
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], encoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    hexadecimal_values = ['{0:02x}'.format(ord(character)) for character in text['selected'].strip()]
+    encoded_text = " ".join(hexadecimal_values)
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], encoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_decode_hexadecimal(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            hexadecimal_values = "nothing"
-            try:
-                hexadecimal_values = text['selected'].strip().split(" ")
-            except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
-                              icon="cancel")
-            decoded_text = "".join([chr(int(value, 16)) for value in hexadecimal_values]) \
-                if hexadecimal_values != "nothing" else text['selected'].strip()
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], decoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    hexadecimal_values = "nothing"
+    try:
+        hexadecimal_values = text['selected'].strip().split(" ")
+    except:
+        CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
+                      icon="cancel")
+    decoded_text = "".join([chr(int(value, 16)) for value in hexadecimal_values]) \
+        if hexadecimal_values != "nothing" else text['selected'].strip()
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], decoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_encode_html(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            encoded_text = html.escape(text['selected'].strip())
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], encoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    encoded_text = html.escape(text['selected'].strip())
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], encoded_text)
 
 
+@text_check(True)
+@text_change
 def cw_decode_html(Window: ctk.CTk or ctk.CTkToplevel):
     text = cw_get_selected(Window)
-    if text is not None:
-        if text['selected'].strip() != "":
-            decoded_text = text['selected'].strip()
-            try:
-                decoded_text = html.unescape(text['selected'].strip())
-            except Exception as err:
-                CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
-                              icon="cancel")
-            Window.change_history()
-            Window.codebox.delete(text['start'], text["end"])
-            Window.codebox.insert(text['start'], decoded_text)
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is literally nothing.", icon="warning")
-    else:
-        CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+    decoded_text = text['selected'].strip()
+    try:
+        decoded_text = html.unescape(text['selected'].strip())
+    except Exception as err:
+        CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to decode decimal.",
+                      icon="cancel")
+    Window.codebox.delete(text['start'], text["end"])
+    Window.codebox.insert(text['start'], decoded_text)
 
 
 def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValue: str, Value: str = None):
