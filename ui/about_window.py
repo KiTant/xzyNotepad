@@ -2,10 +2,13 @@ import customtkinter as ctk
 from utils.helpers import close_window
 from utils.variables import VERSION
 import os
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
 
 
 class AboutWindow(ctk.CTkToplevel):
-    def __init__(self, MainWindow: ctk.CTk, resource_path):
+    def __init__(self, MainWindow: "MainWindowClass", resource_path):
         super().__init__()
         self.MainWindow = MainWindow
 

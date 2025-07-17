@@ -3,6 +3,9 @@ from tkinter import Tk
 import customtkinter as ctk
 from utils.helpers import close_window
 import pyperclip
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
 
 
 def show_font_families(app):
@@ -19,7 +22,7 @@ def on_frame_configure(canvas):
 
 
 class FontsWindow(ctk.CTkToplevel):
-    def __init__(self, MainWindow: ctk.CTk, resource_path):
+    def __init__(self, MainWindow: "MainWindowClass", resource_path):
         super().__init__()
         self.title("Font Families")
         self.geometry("250x400")

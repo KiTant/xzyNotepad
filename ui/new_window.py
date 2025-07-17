@@ -5,10 +5,13 @@ from CTkCodeBox import CTkCodeBox
 from utils.helpers import code_window_binder, close_code_window, save_file
 from ui.line_nums_codebox import AddLineNums
 from utils.variables import LANGUAGES
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
 
 
 class NewWindow(ctk.CTkToplevel):
-    def __init__(self, MainWindow: ctk.CTk, resource_path):
+    def __init__(self, MainWindow: "MainWindowClass", resource_path):
         super().__init__()
         self.MainWindow = MainWindow
         self.current_language = "txt"
@@ -28,8 +31,10 @@ class NewWindow(ctk.CTkToplevel):
         self._initialize_components()
 
     def _initialize_components(self):
-        self.codebox = CTkCodeBox(self, language=LANGUAGES[self.current_language], height=500, theme=self.MainWindow.settings["codebox_theme"].lower(),
-                                  font=ctk.CTkFont(family=self.MainWindow.settings["font_family"], size=self.MainWindow.settings["font_size"]),
+        self.codebox = CTkCodeBox(self, language=LANGUAGES[self.current_language], height=500,
+                                  theme=self.MainWindow.settings["codebox_theme"].lower(),
+                                  font=ctk.CTkFont(family=self.MainWindow.settings["font_family"],
+                                                   size=self.MainWindow.settings["font_size"]),
                                   menu=False, undo=False, line_numbering=False)
         self.codebox.text_menu = TextMenu(Window=self, MainWindow=self.MainWindow)
         self.codebox.line_nums = AddLineNums(self.codebox)
@@ -42,11 +47,11 @@ class NewWindow(ctk.CTkToplevel):
         self.MainWindow.all_titles_menu.append(self.menu)
 
         self.after(100, lambda: self.focus_set())
-        self.after(self.MainWindow.settings["auto_save_file_time"] * 60000, lambda: save_file(self.MainWindow, self, self.full_file_path, True))
+        self.after(self.MainWindow.settings["auto_save_file_time"] * 60000,
+                   lambda: save_file(self.MainWindow, self, self.full_file_path, True))
 
     def change_history(self):
-        current_text = self.codebox.get(0.0, "end")
-        current_text = current_text[:-1]
+        current_text = self.codebox.get("0.0", "end-1c")
         current_history_text = self.history[self.history_index]
         if current_history_text != current_text:
             if self.history_index < len(self.history) - 1:

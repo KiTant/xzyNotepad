@@ -1,27 +1,41 @@
 import customtkinter as ctk
-from g4f import ChatCompletion
-import threading
 import json
 from tkinter import filedialog
 import tkinter
 from utils.variables import MODEL_MAP
 from utils.helpers import close_window
+from utils.assistant_manager import *
 import pyperclip
 from CTkMessagebox import CTkMessagebox
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
 
 
 class AssistantChatApp(ctk.CTkToplevel):
-    def __init__(self, MainWindow: ctk.CTk, resource_path, question=None):
+    def __init__(self, MainWindow: "MainWindowClass", resource_path, question=None, chats=None):
         super().__init__()
         self.MainWindow = MainWindow
         self.title("AI Chat")
         self.geometry("800x700")
         self.after(300, lambda: self.iconbitmap(self.resource_path('assets/xzy-notepad-icon.ico')))
-
         self.minsize(700, 500)
 
         self.resource_path = resource_path
 
+        self.current_chat_name = "Default Chat"
+        self.chats = {"Default Chat": []} if not chats else chats
+        self.message_history = self.chats[self.current_chat_name]
+        self.message_row_index = 0
+        self.message_to_edit = None
+        self.default_model_name = list(MODEL_MAP.keys())[0] if MODEL_MAP else ""
+
+        self._initialize_components()
+
+        if question is not None:
+            send_message(self, message=question)
+
+    def _initialize_components(self):
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(1, weight=1)
@@ -36,7 +50,6 @@ class AssistantChatApp(ctk.CTkToplevel):
 
         self.chat_listbox = ctk.CTkOptionMenu(self.chat_list_frame, values=["Default Chat"], command=self.switch_chat)
         self.chat_listbox.grid(row=1, column=0, padx=10, pady=5, sticky="new")
-        self.current_chat_name = "Default Chat"
 
         self.new_chat_button = ctk.CTkButton(self.chat_list_frame, text="New chat", command=self.create_new_chat)
         self.new_chat_button.grid(row=2, column=0, padx=10, pady=5, sticky="s")
@@ -61,9 +74,7 @@ class AssistantChatApp(ctk.CTkToplevel):
 
         self.model_combobox = ctk.CTkComboBox(self.settings_frame, values=list(MODEL_MAP.keys()), state="readonly")
         self.model_combobox.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
-
-        default_model_name = list(MODEL_MAP.keys())[0] if MODEL_MAP else ""
-        self.model_combobox.set(default_model_name)
+        self.model_combobox.set(self.default_model_name)
 
         self.chat_display = ctk.CTkScrollableFrame(self.chat_panel, fg_color="transparent")
         self.chat_display.grid(row=1, column=0, padx=10, pady=5, sticky="nsew")
@@ -71,7 +82,6 @@ class AssistantChatApp(ctk.CTkToplevel):
         self.chat_display.grid_columnconfigure(1, weight=1)
 
         self.chat_display.bind("<Configure>", self.update_scroll_region)
-        self.message_row_index = 0
 
         self.input_frame = ctk.CTkFrame(self.chat_panel)
         self.input_frame.grid(row=2, column=0, padx=10, pady=(5, 10), sticky="sew")
@@ -80,80 +90,24 @@ class AssistantChatApp(ctk.CTkToplevel):
 
         self.message_textbox = ctk.CTkTextbox(self.input_frame, wrap="word", height=80)
         self.message_textbox.grid(row=0, column=0, padx=10, pady=10, sticky="nsew")
-        self.message_textbox.bind("<Return>", self.send_message)
+        self.message_textbox.bind("<Return>", lambda e: send_message(self, e))
         self.message_textbox.bind("<Shift-Return>", lambda event: self.message_textbox.insert("insert", ""))
 
-        self.send_button = ctk.CTkButton(self.input_frame, text="Send", command=self.send_message)
+        self.paste_button = ctk.CTkButton(self.input_frame, text="Paste into",
+                                          command=lambda: self.message_textbox.insert("insert", pyperclip.paste()))
+        self.paste_button.grid(row=0, column=3, padx=10, pady=10, sticky="ne")
+
+        self.send_button = ctk.CTkButton(self.input_frame, text="Send", command=lambda: send_message(self))
         self.send_button.grid(row=0, column=3, padx=10, pady=10, sticky="se")
 
-        self.chats = {"Default Chat": []}
-        self.message_history = self.chats[self.current_chat_name]
-
         self.message_context_menu = tkinter.Menu(self, tearoff=0)
-        self.message_to_edit = None
 
         self.MainWindow.all_children.append(self)
 
-        self.protocol("WM_DELETE_WINDOW", lambda: close_window(self, self.MainWindow))
+        self.protocol("WM_DELETE_WINDOW", lambda: (close_window(self, self.MainWindow),
+                                                   setattr(self.MainWindow, "last_chats", self.chats)))
 
-        self.after(100, lambda: self.focus_set())
-
-        if question is not None:
-            self.send_message(message=question)
-
-    def send_message(self, event=None, message=None):
-        user_message = self.message_textbox.get("1.0", "end-1c") if message is None else message
-
-        if not user_message.strip():
-            return
-
-        selected_model_name = self.model_combobox.get()
-        selected_model_info = MODEL_MAP.get(selected_model_name)
-
-        if not selected_model_info:
-            self.display_message({"role": "bot",
-                                  "content": f"Error: Model '{selected_model_name}' not found or not supporting.",
-                                  "model_name": "xzyNotepad"}, "bot")
-            self.unlock_input()
-            return
-
-        selected_model, selected_provider = selected_model_info
-
-        user_message_data = {"role": "user", "content": user_message, "is_edited": False, "model_name": "User"}
-
-        self.display_message(user_message_data, "user")
-
-        self.message_history.append(user_message_data)
-
-        self.message_textbox.delete("1.0", ctk.END)
-
-        self.message_textbox.configure(state="disabled")
-        self.send_button.configure(state="disabled", text="Thinking...")
-        self.model_combobox.configure(state="disabled")
-        self.export_button.configure(state="disabled")
-        self.import_button.configure(state="disabled")
-        self.chat_listbox.configure(state="disabled")
-        self.new_chat_button.configure(state="disabled")
-
-        threading.Thread(
-            target=self.get_ai_response,
-            args=(self.message_history.copy(), selected_model, selected_provider, selected_model_name),
-            daemon=True
-        ).start()
-
-    def get_ai_response(self, conversation_history, model, provider=None, model_name="AI"):
-        try:
-            clean_history = [{"role": msg["role"], "content": msg["content"]} for msg in conversation_history]
-            response = ChatCompletion.create(model=model, messages=clean_history, provider=provider, stream=False)
-            ai_response = response if isinstance(response, str) else str(response)
-            ai_response_data = {"role": "assistant", "content": ai_response, "is_edited": False,
-                                "type": "text", "model_name": model_name}
-        except Exception as e:
-            ai_response_data = {"role": "bot",
-                                "content": f"Error while trying to get answer from AI:"
-                                           f" {e}\nTry to choose other model or try to launch VPN.", "is_edited": False,
-                                "type": "text", "model_name": model_name}
-        self.after(0, self.display_ai_response, ai_response_data)
+        self.after(100, lambda: (self.focus_set(), self.redraw_chat()))
 
     def display_message(self, message_data, sender):
         msg_frame = ctk.CTkFrame(self.chat_display, fg_color="transparent")
@@ -209,7 +163,7 @@ class AssistantChatApp(ctk.CTkToplevel):
                 message_index = self.message_history.index(message_data)
                 if message_index > 0 and self.message_history[message_index - 1]["role"] == "user":
                     self.message_context_menu.add_command(label="Regenerate the response",
-                                                          command=lambda: self.regenerate_response(message_data))
+                                                          command=lambda: regenerate_ai_response(self, message_data))
             except ValueError:
                 pass
         elif message_data["role"] == "user":
@@ -227,7 +181,7 @@ class AssistantChatApp(ctk.CTkToplevel):
         if text_to_copy:
             try:
                 pyperclip.copy(text_to_copy)
-            except Exception as e:
+            except:
                 pass
 
     def open_edit_copy_window(self):
@@ -260,7 +214,7 @@ class AssistantChatApp(ctk.CTkToplevel):
 
     def save_edited_message(self, edit_textbox, edit_window):
         if self.message_to_edit is not None:
-            new_text = edit_textbox.get("1.0", "end-1c")
+            new_text = edit_textbox.get("0.0", "end-1c")
             self.message_to_edit["content"] = new_text
             self.message_to_edit["is_edited"] = True
             self.redraw_chat()
@@ -269,11 +223,11 @@ class AssistantChatApp(ctk.CTkToplevel):
 
     @staticmethod
     def copy_text_from_edit_window(edit_textbox):
-        text_to_copy = edit_textbox.get("1.0", "end-1c")
+        text_to_copy = edit_textbox.get("0.0", "end-1c")
         if text_to_copy:
             try:
                 pyperclip.copy(text_to_copy)
-            except Exception as e:
+            except:
                 pass
 
     def delete_message(self, message_data_to_delete):
@@ -286,51 +240,6 @@ class AssistantChatApp(ctk.CTkToplevel):
         except Exception as e:
             CTkMessagebox(title="xzyNotepad (Assistant Chat)",
                           message=f"Error during deleting: {e}", icon="cancel")
-
-    def regenerate_response(self, ai_message_data):
-        try:
-            ai_index = self.message_history.index(ai_message_data)
-            if ai_index > 0 and self.message_history[ai_index - 1]["role"] == "user":
-                del self.message_history[ai_index]
-                self.redraw_chat()
-
-                selected_model_name = self.model_combobox.get()
-                selected_model_info = MODEL_MAP.get(selected_model_name)
-                if not selected_model_info:
-                    self.display_message({"role": "bot",
-                                          "content": f'Error: Model "{selected_model_name}" '
-                                                     f'not found or it is not supported for regenerating answer.',
-                                          "type": "text", "model_name": "System"}, "bot")
-                    self.unlock_input()
-                    return
-                selected_model, selected_provider = selected_model_info
-
-                threading.Thread(
-                    target=self.get_ai_response,
-                    args=(self.message_history[:ai_index].copy(), selected_model, selected_provider, selected_model_name),
-                    daemon=True
-                ).start()
-
-                self.message_textbox.configure(state="disabled")
-                self.send_button.configure(state="disabled", text="Re-thinking...")
-                self.model_combobox.configure(state="disabled")
-                self.export_button.configure(state="disabled")
-                self.import_button.configure(state="disabled")
-                self.chat_listbox.configure(state="disabled")
-                self.new_chat_button.configure(state="disabled")
-
-            else:
-                CTkMessagebox(title="xzyNotepad (Assistant Chat)",
-                              message=f"Error during regenerating response: "
-                                      f"The previous message is not a user message,"
-                                      f" and it is not possible to edit the response.", icon="warning")
-        except ValueError:
-            CTkMessagebox(title="xzyNotepad (Assistant Chat)",
-                          message=f"Error during regenerating response: Message from AI not found in history",
-                          icon="warning")
-        except Exception as e:
-            CTkMessagebox(title="xzyNotepad (Assistant Chat)",
-                          message=f"Error during regenerating response: {e}", icon="cancel")
 
     def display_ai_response(self, ai_response_data):
         self.display_message(ai_response_data, "bot")
@@ -348,6 +257,15 @@ class AssistantChatApp(ctk.CTkToplevel):
         self.import_button.configure(state="normal")
         self.chat_listbox.configure(state="normal")
         self.new_chat_button.configure(state="normal")
+
+    def lock_input(self, text="Thinking..."):
+        self.message_textbox.configure(state="disabled")
+        self.send_button.configure(state="disabled", text=text)
+        self.model_combobox.configure(state="disabled")
+        self.export_button.configure(state="disabled")
+        self.import_button.configure(state="disabled")
+        self.chat_listbox.configure(state="disabled")
+        self.new_chat_button.configure(state="disabled")
 
     def clear_chat_display(self):
         for widget in self.chat_display.winfo_children():

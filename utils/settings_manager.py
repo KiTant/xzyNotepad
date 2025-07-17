@@ -3,11 +3,15 @@ import os
 import json
 from CTkCodeBox import CTkCodeBox
 from utils.variables import DEFAULT_SETTINGS
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
 
 
-def s_apply(MainWindow: ctk.CTk):
+def s_apply(MainWindow: "MainWindowClass"):
     ctk.set_appearance_mode(MainWindow.settings['theme'])
-    ctk.set_default_color_theme(MainWindow.resource_path(f'assets/themes/{MainWindow.settings["main_theme"].lower()}.json'))
+    ctk.set_default_color_theme(MainWindow.resource_path(f'assets/themes/'
+                                                         f'{MainWindow.settings["main_theme"].lower()}.json'))
     for window in MainWindow.all_children + [MainWindow]:
         for widget in window.winfo_children():
             if isinstance(widget, CTkCodeBox):
@@ -25,14 +29,14 @@ def s_add_new(settings):
     return settings
 
 
-def s_save(MainWindow: ctk.CTk, file):
+def s_save(MainWindow: "MainWindowClass", file):
     os.makedirs(os.path.dirname(file), exist_ok=True)
     with open(file, 'w') as f:
         json.dump(MainWindow.settings, f, indent=4)
         f.close()
 
 
-def s_load(MainWindow: ctk.CTk, file, auto_load=False, set_vars=False):
+def s_load(MainWindow: "MainWindowClass", file, auto_load=False, set_vars=False):
     if os.path.exists(file):
         with open(file, 'r') as f:
             data = s_add_new(json.load(f))
@@ -48,7 +52,7 @@ def s_load(MainWindow: ctk.CTk, file, auto_load=False, set_vars=False):
         s_apply(MainWindow)
 
 
-def s_previous_load(MainWindow: ctk.CTk):
+def s_previous_load(MainWindow: "MainWindowClass"):
     if os.path.exists(MainWindow.previous_settings_file):
         with open(MainWindow.previous_settings_file, 'r') as f:
             data = s_add_new(json.load(f))

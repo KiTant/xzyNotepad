@@ -1,11 +1,14 @@
 from CTkMenuBar import *
-import customtkinter as ctk
 from customtkinter.windows.widgets.theme.theme_manager import ThemeManager
 from utils.helpers import *
+from typing import TYPE_CHECKING, Union
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
+    from ui.new_window import NewWindow as NewWindowClass
 
 
 class TitleMenu(CTkTitleMenu):
-    def __init__(self, MainWindow: ctk.CTk, CurrentWindow: ctk.CTkToplevel or ctk.CTk):
+    def __init__(self, MainWindow: "MainWindowClass", CurrentWindow: Union["MainWindowClass", "NewWindowClass"]): # Union only for python 3.9 (which I use); in 3.10+ it can be like "CurrentWindow: MainWindowClass | NewWindowClass"
         super().__init__(master=CurrentWindow, x_offset=400)
 
         self.File_Button = self.add_cascade("File")
@@ -31,7 +34,8 @@ class TitleMenu(CTkTitleMenu):
 
         self.Edit_Dropdown = CustomDropdownMenu(widget=self.Edit_Button,
                                                 hover_color=ThemeManager.theme["CTkButton"]["fg_color"])
-        self.Edit_Dropdown.add_option(option="Chat with AI", command=lambda: show_assistant_chat(MainWindow))
+        self.Edit_Dropdown.add_option(option="Chat with AI",
+                                      command=lambda: show_assistant_chat(MainWindow, None, MainWindow.last_chats))
         self.Edit_Dropdown.add_option(option="Paste current time", command=lambda: insert_time(CurrentWindow))
         self.Edit_Dropdown.add_option(option="Color picker",
                                       command=lambda: color_picker(CurrentWindow, MainWindow.resource_path))

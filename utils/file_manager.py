@@ -4,9 +4,13 @@ from tkinter import filedialog
 from utils.variables import LANGUAGES, FILE_TYPES
 import uuid
 import os
+from typing import TYPE_CHECKING, Union
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
+    from ui.new_window import NewWindow as NewWindowClass
 
 
-def f_open(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, binded: bool = False):
+def f_open(MainWindow: "MainWindowClass", Window: Union["MainWindowClass", "NewWindowClass"], binded: bool = False):
     if MainWindow.settings['keybinds'] == "Disabled" and binded is True:
         return
     if not Window.saved:
@@ -27,7 +31,7 @@ def f_open(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, binded: bool
             try:
                 content, file_format = file.read(), file_path.split('.')[-1]
                 successful_read = True
-            except Exception as err:
+            except:
                 CTkMessagebox(title="xzyNotepad",
                               message="Unable to read this file (most likely the content is not supported by utf-8)",
                               icon="cancel")
@@ -52,7 +56,8 @@ def f_open(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, binded: bool
                 window.menu.after(125, window.menu.withdraw)
 
 
-def f_save_as(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, ext="py", binded: bool = False):
+def f_save_as(MainWindow: "MainWindowClass", Window: Union["MainWindowClass", "NewWindowClass"],
+              ext="py", binded: bool = False):
     if MainWindow.settings['keybinds'] == "Disabled" and binded is True:
         return
     title = LANGUAGES.get(ext, 'Unknown').title() \
@@ -67,7 +72,7 @@ def f_save_as(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, ext="py",
                                              filetypes=FILE_TYPES)
     if file_path:
         with open(file_path, "w", encoding="utf-8") as file:
-            content = Window.codebox.get(0.0, ctk.END)[:-1]
+            content = Window.codebox.get("0.0", "end-1c")
             MainWindow.disable_updating_code = True
             file.write(content)
             Window.codebox.edit_modified(False)
@@ -75,8 +80,7 @@ def f_save_as(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, ext="py",
             Window.change_history()
         Window.title(f"xzyNotepad - {file_path.split('/')[-1]}")
         Window.current_language = file_path.split('.')[-1]
-        Window.codebox.configure(language=LANGUAGES[Window.current_language]
-        if Window.current_language in list(LANGUAGES.keys()) else LANGUAGES["txt"])
+        Window.codebox.configure(language=LANGUAGES[Window.current_language] if Window.current_language in list(LANGUAGES.keys()) else LANGUAGES["txt"])
         MainWindow.after(100, lambda: setattr(MainWindow, "disable_updating_code", False))
     Window.focus_set()
     for window in MainWindow.all_children + [MainWindow]:
@@ -87,13 +91,14 @@ def f_save_as(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, ext="py",
                 window.menu.after(125, window.menu.withdraw)
 
 
-def f_save(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, full_file_path, auto=False, binded: bool = False):
+def f_save(MainWindow: "MainWindowClass", Window: Union["MainWindowClass", "NewWindowClass"],
+           full_file_path, auto=False, binded: bool = False):
     if Window is None or (MainWindow.settings['keybinds'] == "Disabled" and binded is True):
         return
     if ((MainWindow.settings['auto_save_file'] == "Enabled" and auto is True) or auto is False) \
             and full_file_path is not None and Window.saved is False:
         with open(full_file_path, "w", encoding="utf-8") as file:
-            content = Window.codebox.get(0.0, ctk.END)[:-1]
+            content = Window.codebox.get("0.0", "end-1c")
             MainWindow.disable_updating_code = True
             file.write(content)
             Window.codebox.edit_modified(False)
@@ -110,11 +115,12 @@ def f_save(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, full_file_pa
                      lambda: f_save(MainWindow, Window, full_file_path, True))
 
 
-def f_start(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, full_file_path, binded: bool = False):
+def f_start(MainWindow: "MainWindowClass", Window: Union["MainWindowClass", "NewWindowClass"],
+            full_file_path, binded: bool = False):
     if MainWindow.settings['keybinds'] == "Disabled" and binded is True:
         return
     if full_file_path is None:
-        content = Window.codebox.get(0.0, ctk.END)[:-1]
+        content = Window.codebox.get("0.0", "end-1c")
         temp_dir = os.getenv('TEMP', os.getenv('TMP', 'C:\\Temp'))
         filename = f"{uuid.uuid1()}.{Window.current_language}"
         file_path = os.path.join(temp_dir, filename)
@@ -124,7 +130,7 @@ def f_start(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel, full_file_p
             with open(file_path, 'w', encoding='utf-8') as f:
                 f.write(content)
             os.startfile(file_path)
-        except Exception as err:
+        except:
             CTkMessagebox(title="xzyNotepad", message="Unexpected error while trying to start file.", icon="cancel")
     else:
         os.startfile(os.path.join(full_file_path))

@@ -2,7 +2,7 @@ import g4f
 from pygments import lexers
 from g4f.Provider import PollinationsAI, Copilot
 
-VERSION = "1.2.0"
+VERSION = "1.2.3"
 
 LANGUAGES = {
     'txt': lexers.TodotxtLexer,

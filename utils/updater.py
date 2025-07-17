@@ -1,15 +1,17 @@
-import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 import requests
 from utils.variables import VERSION
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
 
 
-def stop_update(MainWindow: ctk.CTk, title, message, icon):
+def stop_update(MainWindow: "MainWindowClass", title, message, icon):
     CTkMessagebox(title=title, message=message, icon=icon)
     MainWindow.updating = False
 
 
-def download_last_release(MainWindow: ctk.CTk, version):
+def download_last_release(MainWindow: "MainWindowClass", version):
     msg = CTkMessagebox(title="xzyNotepad (updating)",
                         message="Update of xzyNotepad is started, please wait...",
                         icon="info")
@@ -20,7 +22,8 @@ def download_last_release(MainWindow: ctk.CTk, version):
             with open(f"xzyNotepad{version}.exe", "wb") as file:
                 file.write(response.content)
             stop_update(MainWindow, title="xzyNotepad (updating)", icon="check",
-                        message="New update successfully installed as new file in directory where storages this version."
+                        message="New update successfully installed as new file"
+                                " in directory where storages this version."
                                 "You can delete this version and open new.")
         except:
             stop_update(MainWindow, title="xzyNotepad (downloading update)", icon="cancel",
@@ -30,7 +33,7 @@ def download_last_release(MainWindow: ctk.CTk, version):
                     message="Unexpected error while trying to get last release, please check your internet.")
 
 
-def check_last_version(MainWindow: ctk.CTk):
+def check_last_version(MainWindow: "MainWindowClass"):
     for window in MainWindow.all_children:
         if window.title() == "xzyNotepad (checking updates)" or MainWindow.updating is True:
             return

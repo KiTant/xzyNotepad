@@ -35,7 +35,8 @@ class SearchWindow(customtkinter.CTkToplevel):
 
         self.find_next_button = customtkinter.CTkButton(self.search_frame, text="Find Next", command=self.find_next)
         self.find_next_button.pack(side="right", padx=(5, 5))
-        self.find_prev_button = customtkinter.CTkButton(self.search_frame, text="Find Previous", command=self.find_previous)
+        self.find_prev_button = customtkinter.CTkButton(self.search_frame, text="Find Previous",
+                                                        command=self.find_previous)
         self.find_prev_button.pack(side="right")
 
         self.replace_frame = customtkinter.CTkFrame(self)
@@ -48,17 +49,20 @@ class SearchWindow(customtkinter.CTkToplevel):
 
         self.replace_button = customtkinter.CTkButton(self.replace_frame, text="Replace", command=self.replace_one)
         self.replace_button.pack(side="right", padx=(0, 5))
-        self.replace_all_button = customtkinter.CTkButton(self.replace_frame, text="Replace All", command=self.replace_all)
+        self.replace_all_button = customtkinter.CTkButton(self.replace_frame, text="Replace All",
+                                                          command=self.replace_all)
         self.replace_all_button.pack(side="right", padx=(5, 5))
 
         self.options_frame = customtkinter.CTkFrame(self)
         self.options_frame.pack(pady=5, padx=10, fill="x")
 
         self.case_sensitive_var = customtkinter.BooleanVar(value=False)
-        self.case_sensitive_checkbox = customtkinter.CTkCheckBox(self.options_frame, text="Match Case", variable=self.case_sensitive_var)
+        self.case_sensitive_checkbox = customtkinter.CTkCheckBox(self.options_frame, text="Match Case",
+                                                                 variable=self.case_sensitive_var)
         self.case_sensitive_checkbox.pack(side="left", padx=(0, 10))
 
-        self.clear_highlight_button = customtkinter.CTkButton(self.options_frame, text="Clear Highlights", command=self.clear_highlights)
+        self.clear_highlight_button = customtkinter.CTkButton(self.options_frame, text="Clear Highlights",
+                                                              command=self.clear_highlights)
         self.clear_highlight_button.pack(side="right", padx=(0, 75))
 
         self.close_button = customtkinter.CTkButton(self, text="Close", command=self.destroy)

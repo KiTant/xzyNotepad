@@ -89,7 +89,7 @@ class TextMenu(tkinter.Menu):
     @text_change
     def clear_all_text(self):
         try:
-            self.Window.codebox.delete(0.0, "end")
+            self.Window.codebox.delete("0.0", "end")
         except tkinter.TclError:
             pass
 
@@ -106,15 +106,15 @@ class TextMenu(tkinter.Menu):
             if self.Window.history_index > 0:
                 self.Window.history_index -= 1
                 prev_text = self.Window.history[self.Window.history_index]
-                self.Window.codebox.delete(0.0, "end")
-                self.Window.codebox.insert(0.0, prev_text)
+                self.Window.codebox.delete("0.0", "end")
+                self.Window.codebox.insert("0.0", prev_text)
                 self.Window.codebox.see("end")
                 self.Window.codebox.line_nums.redraw()
-            elif self.Window.history_index == 0 and self.Window.codebox.get(0.0, "end")[:-1] != self.Window.history[0]:
+            elif self.Window.history_index == 0 and self.Window.codebox.get("0.0", "end-1c") != self.Window.history[0]:
                 self.Window.change_history()
                 self.Window.history_index -= 1
-                self.Window.codebox.delete(0.0, "end")
-                self.Window.codebox.insert(0.0, self.Window.history[0])
+                self.Window.codebox.delete("0.0", "end")
+                self.Window.codebox.insert("0.0", self.Window.history[0])
                 self.Window.codebox.see("end")
                 self.Window.codebox.line_nums.redraw()
             else:
@@ -130,8 +130,8 @@ class TextMenu(tkinter.Menu):
             if self.Window.history_index < len(self.Window.history) - 1:
                 self.Window.history_index += 1
                 next_text = self.Window.history[self.Window.history_index]
-                self.Window.codebox.delete(0.0, "end")
-                self.Window.codebox.insert(0.0, next_text)
+                self.Window.codebox.delete("0.0", "end")
+                self.Window.codebox.insert("0.0", next_text)
                 self.Window.codebox.see("end")
                 self.Window.codebox.line_nums.redraw()
             else:
@@ -141,7 +141,7 @@ class TextMenu(tkinter.Menu):
             CTkMessagebox(title="xzyNotepad", message=f"Error during redo: {e}", icon="cancel")
 
     def clear_history(self):
-        self.Window.history = [self.Window.codebox.get(0.0, "end")[:-1]]
+        self.Window.history = [self.Window.codebox.get("0.0", "end-1c")]
         self.Window.history_index = 0
 
     def find_replace_text(self, binded: bool = False):
@@ -157,7 +157,7 @@ class TextMenu(tkinter.Menu):
 
     def open_containing_folder(self, binded: bool = False):
         if self.MainWindow.settings['keybinds'] == "Disabled" and binded is True:
-            return
+            return "break"
         self.file_path = self.MainWindow.full_file_path
         if self.file_path and os.path.exists(self.file_path):
             folder_path = os.path.dirname(self.file_path)
@@ -172,6 +172,8 @@ class TextMenu(tkinter.Menu):
             CTkMessagebox(title="xzyNotepad",
                           message=f"File path not set or file does not exist. Cannot open containing folder",
                           icon="warning")
+        if binded is True:
+            return "break"
 
     def search_in_browser(self):
         try:

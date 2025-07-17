@@ -13,7 +13,7 @@ def rgb_to_hsv(r: int, g: int, b: int):
         h = (60 * ((g_norm - b_norm) / difference) + 360) % 360
     elif max_rgb == g_norm:
         h = (60 * ((b_norm - r_norm) / difference) + 120) % 360
-    else: # max_rgb == b_norm
+    else:  # max_rgb == b_norm
         h = (60 * ((r_norm - g_norm) / difference) + 240) % 360
     s = 0 if max_rgb == 0 else (difference / max_rgb) * 100
     v = max_rgb * 100
@@ -64,7 +64,7 @@ def rgb_to_hsl(r: int, g: int, b: int):
             h = (60 * ((g_norm - b_norm) / difference) + 360) % 360
         elif max_rgb == g_norm:
             h = (60 * ((b_norm - r_norm) / difference) + 120) % 360
-        else: # max_rgb == b_norm
+        else:  # max_rgb == b_norm
             h = (60 * ((r_norm - g_norm) / difference) + 240) % 360
     return round(h), round(s), round(l * 100)
 

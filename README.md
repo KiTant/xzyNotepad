@@ -9,6 +9,7 @@ An open-source versatile notepad designed specifically for writing and editing c
 - CTkMenuBar
 - CTkCodeBox
 - CTkListbox
+- CTkColorPicker
 - os
 - json
 - math

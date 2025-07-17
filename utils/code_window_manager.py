@@ -1,4 +1,3 @@
-import customtkinter as ctk
 from CTkMessagebox import CTkMessagebox
 from utils.converter import *
 from utils.decorators import text_change, text_check
@@ -6,9 +5,13 @@ from time import gmtime, strftime
 import base64
 import html
 import hashlib
+from typing import TYPE_CHECKING, Union
+if TYPE_CHECKING:
+    from ui.main_window import MainWindow as MainWindowClass
+    from ui.new_window import NewWindow as NewWindowClass
 
 
-def on_key_press(event, MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
+def on_key_press(event, MainWindow: "MainWindowClass", Window: Union["MainWindowClass", "NewWindowClass"]):
     from utils.helpers import save_file, start_file, open_file, new_file, show_preferences
     if event.char == '\x13': save_file(MainWindow, Window, Window.full_file_path, False, True)  # Ctrl + S
     elif event.char == '\x17': start_file(MainWindow, Window, Window.full_file_path, True)  # Ctrl + W
@@ -24,14 +27,10 @@ def on_key_press(event, MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel)
     elif event.char == '\x16': Window.codebox.text_menu.paste_text(True)  # Ctrl + V
 
 
-def cw_binder(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
+def cw_binder(MainWindow: "MainWindowClass", Window: Union["MainWindowClass", "NewWindowClass"]):
     from utils.helpers import open_file
-    Window.unbind_class("Text", "<<Paste>>")
-    Window.unbind_class("Text", "<<Copy>>")
-    Window.unbind_class("Text", "<<Cut>>")
-    Window.unbind_class("Text", "<<Undo>>")
-    Window.unbind_class("Text", "<<Redo>>")
-    Window.unbind_class("Text", "<<SelectAll>>")
+    for method in ["<<Paste>>", "<<Copy>>", "<<Cut>>", "<<Undo>>", "<<Redo>>", "<<SelectAll>>"]:
+        Window.unbind_class("Text", method)
     Window.codebox.bind("<Control-i>", lambda event: "break")
     Window.codebox.bind("<Control-h>", lambda event: "break")
     Window.codebox.bind("<Control-o>", lambda event: open_file(MainWindow, Window, True))
@@ -41,7 +40,7 @@ def cw_binder(MainWindow: ctk.CTk, Window: ctk.CTk or ctk.CTkToplevel):
     Window.bind("<Key>", lambda event: on_key_press(event, MainWindow, Window))
 
 
-def cw_close(Window: ctk.CTk or ctk.CTkToplevel, all_children):
+def cw_close(Window: Union["MainWindowClass", "NewWindowClass"], all_children):
     message = None
     main_window = False
     if Window not in all_children:
@@ -70,7 +69,7 @@ def cw_close(Window: ctk.CTk or ctk.CTkToplevel, all_children):
             Window.destroy()
 
 
-def cw_get_selected(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_get_selected(Window: Union["MainWindowClass", "NewWindowClass"]):
     try:
         start, end = Window.codebox.index("sel.first"), Window.codebox.index("sel.last")
         selected_text = Window.codebox.get(start, end)
@@ -79,7 +78,7 @@ def cw_get_selected(Window: ctk.CTk or ctk.CTkToplevel):
         return None
 
 
-def cw_updated(Window: ctk.CTk or ctk.CTkToplevel, MainWindow: ctk.CTk):
+def cw_updated(Window: Union["MainWindowClass", "NewWindowClass"], MainWindow: "MainWindowClass"):
     if not MainWindow.disable_updating_code:
         if Window.full_file_path is not None:
             Window.title(f"xzyNotepad - *{Window.full_file_path.split('/')[-1]}")
@@ -96,7 +95,7 @@ def cw_tab(event, indent_space=4):
 
 
 @text_change
-def cw_time(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_time(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     if text is not None:
         Window.codebox.delete(text['start'], text['end'])
@@ -107,7 +106,7 @@ def cw_time(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_hash(Window: ctk.CTk or ctk.CTkToplevel, hash_type):
+def cw_hash(Window: Union["MainWindowClass", "NewWindowClass"], hash_type):
     text = cw_get_selected(Window)
     hashed_text = getattr(hashlib, hash_type)(text['selected'].strip().encode('utf-8')).hexdigest()
     Window.codebox.delete(text['start'], text['end'])
@@ -116,7 +115,7 @@ def cw_hash(Window: ctk.CTk or ctk.CTkToplevel, hash_type):
 
 @text_check(True)
 @text_change
-def cw_encode_base(Window: ctk.CTk or ctk.CTkToplevel, num):
+def cw_encode_base(Window: Union["MainWindowClass", "NewWindowClass"], num):
     text = cw_get_selected(Window)
     encoded_text = getattr(base64, f"b{num}encode")(text['selected'].strip().encode('utf-8')).decode('utf-8')
     Window.codebox.delete(text['start'], text['end'])
@@ -125,7 +124,7 @@ def cw_encode_base(Window: ctk.CTk or ctk.CTkToplevel, num):
 
 @text_check(True)
 @text_change
-def cw_decode_base(Window: ctk.CTk or ctk.CTkToplevel, num):
+def cw_decode_base(Window: Union["MainWindowClass", "NewWindowClass"], num):
     text = cw_get_selected(Window)
     decoded_text = text['selected'].strip()
     try:
@@ -139,7 +138,7 @@ def cw_decode_base(Window: ctk.CTk or ctk.CTkToplevel, num):
 
 @text_check(True)
 @text_change
-def cw_encode_ascii(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_encode_ascii(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     encoded_text = ""
     ascii_values = [ord(character) for character in text['selected'].strip()]
@@ -151,7 +150,7 @@ def cw_encode_ascii(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_decode_ascii(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_decode_ascii(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     chr_values = "nothing"
     try:
@@ -166,7 +165,7 @@ def cw_decode_ascii(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_encode_binary(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_encode_binary(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     binary_values = ['{0:08b}'.format(ord(character)) for character in text['selected'].strip()]
     encoded_text = " ".join(binary_values)
@@ -176,7 +175,7 @@ def cw_encode_binary(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_decode_binary(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_decode_binary(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     binary_values = "nothing"
     try:
@@ -192,7 +191,7 @@ def cw_decode_binary(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_encode_octal(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_encode_octal(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     octal_values = ['{0:03o}'.format(ord(character)) for character in text['selected'].strip()]
     encoded_text = " ".join(octal_values)
@@ -202,7 +201,7 @@ def cw_encode_octal(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_decode_octal(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_decode_octal(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     octal_values = "nothing"
     try:
@@ -218,7 +217,7 @@ def cw_decode_octal(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_encode_decimal(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_encode_decimal(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     decimal_values = ['{0:03d}'.format(ord(character)) for character in text['selected'].strip()]
     encoded_text = " ".join(decimal_values)
@@ -228,7 +227,7 @@ def cw_encode_decimal(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_decode_decimal(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_decode_decimal(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     decimal_values = "nothing"
     try:
@@ -244,7 +243,7 @@ def cw_decode_decimal(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_encode_hexadecimal(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_encode_hexadecimal(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     hexadecimal_values = ['{0:02x}'.format(ord(character)) for character in text['selected'].strip()]
     encoded_text = " ".join(hexadecimal_values)
@@ -254,7 +253,7 @@ def cw_encode_hexadecimal(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_decode_hexadecimal(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_decode_hexadecimal(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     hexadecimal_values = "nothing"
     try:
@@ -270,7 +269,7 @@ def cw_decode_hexadecimal(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_encode_html(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_encode_html(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     encoded_text = html.escape(text['selected'].strip())
     Window.codebox.delete(text['start'], text["end"])
@@ -279,7 +278,7 @@ def cw_encode_html(Window: ctk.CTk or ctk.CTkToplevel):
 
 @text_check(True)
 @text_change
-def cw_decode_html(Window: ctk.CTk or ctk.CTkToplevel):
+def cw_decode_html(Window: Union["MainWindowClass", "NewWindowClass"]):
     text = cw_get_selected(Window)
     decoded_text = text['selected'].strip()
     try:
@@ -291,21 +290,17 @@ def cw_decode_html(Window: ctk.CTk or ctk.CTkToplevel):
     Window.codebox.insert(text['start'], decoded_text)
 
 
-def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValue: str, Value: str = None):
-    selected_text = None
-    selected_text_info = cw_get_selected(Window)
-    if selected_text_info:
-        selected_text = selected_text_info['selected'].strip()
+@text_check(True)
+@text_change
+def cw_convert_values(Window: Union["MainWindowClass", "NewWindowClass"], FromValue: str,
+                      ToValue: str, Value: str = None):
+    text = cw_get_selected(Window)
     if Value is not None and Value.strip():
-        selected_text = Value.strip()
-    if not selected_text:
-        if hasattr(ctk, 'CTkMessagebox'):
-            ctk.CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
-        return
+        text = Value.strip()
     result = None
     error_message = None
     if FromValue == "HEX":
-        color_value_stripped = selected_text.lstrip("(").rstrip(")").lstrip("#")
+        color_value_stripped = text['selected'].lstrip("(").rstrip(")").lstrip("#")
         if not (len(color_value_stripped) == 6 and color_value_stripped.isalnum()):
             error_message = "Invalid HEX format. 6 hexadecimal characters are expected (e.g. FF00FF)."
         else:
@@ -326,7 +321,7 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
                 error_message = "Error when parsing the HEX value. " \
                                 "Make sure that these are correct hexadecimal characters."
     elif FromValue == "RGB":
-        color_parts = [p.strip() for p in selected_text.lstrip("(").rstrip(")").split(",")]
+        color_parts = [p.strip() for p in text['selected'].lstrip("(").rstrip(")").split(",")]
         if not (len(color_parts) == 3 and all(p.isdigit() for p in color_parts)):
             error_message = "Incorrect RGB format. 'R, G, B' is expected (e.g. 255, 0, 128)."
         else:
@@ -346,7 +341,7 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
             except ValueError:
                 error_message = "Error when parsing RGB values. Make sure that these are integers."
     elif FromValue == "HSV":
-        color_parts = [p.strip() for p in selected_text.lstrip("(").rstrip(")").split(",")]
+        color_parts = [p.strip() for p in text['selected'].lstrip("(").rstrip(")").split(",")]
         if not (len(color_parts) == 3 and all(p.isdigit() for p in color_parts)):
             error_message = "Incorrect HSV format. 'H, S, V' is expected (for example, 0, 100, 100)."
         else:
@@ -357,16 +352,13 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
                 else:
                     if ToValue == "RGB":
                         result = hsv_to_rgb(h, s, v)
-                        if result:
-                            result = f"{result[0]}, {result[1]}, {result[2]}"
+                        result = f"{result[0]}, {result[1]}, {result[2]}"
                     elif ToValue == "HEX":
                         rgb_temp = hsv_to_rgb(h, s, v)
-                        if rgb_temp:
-                            result = "#{:02x}{:02x}{:02x}".format(rgb_temp[0], rgb_temp[1], rgb_temp[2])
+                        result = "#{:02x}{:02x}{:02x}".format(rgb_temp[0], rgb_temp[1], rgb_temp[2])
                     elif ToValue == "HSL":
                         rgb_temp = hsv_to_rgb(h, s, v)
-                        if rgb_temp:
-                            result = rgb_to_hsl(rgb_temp[0], rgb_temp[1], rgb_temp[2])
+                        result = rgb_to_hsl(rgb_temp[0], rgb_temp[1], rgb_temp[2])
                     elif ToValue == "HSV":
                         result = f"{h}, {s}, {v}"
                     else:
@@ -374,7 +366,7 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
             except ValueError:
                 error_message = "Error when parsing HSV values. Make sure that these are integers."
     elif FromValue == "HSL":
-        color_parts = [p.strip() for p in selected_text.lstrip("(").rstrip(")").split(",")]
+        color_parts = [p.strip() for p in text['selected'].lstrip("(").rstrip(")").split(",")]
         if not (len(color_parts) == 3 and all(p.isdigit() for p in color_parts)):
             error_message = "Invalid HSL format. 'H, S, L' is expected (for example, 0, 100, 50)."
         else:
@@ -385,16 +377,13 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
                 else:
                     if ToValue == "RGB":
                         result = hsl_to_rgb(h, s, l)
-                        if result:
-                            result = f"{result[0]}, {result[1]}, {result[2]}"
+                        result = f"{result[0]}, {result[1]}, {result[2]}"
                     elif ToValue == "HEX":
                         rgb_temp = hsl_to_rgb(h, s, l)
-                        if rgb_temp:
-                            result = "#{:02x}{:02x}{:02x}".format(rgb_temp[0], rgb_temp[1], rgb_temp[2])
+                        result = "#{:02x}{:02x}{:02x}".format(rgb_temp[0], rgb_temp[1], rgb_temp[2])
                     elif ToValue == "HSV":
                         rgb_temp = hsl_to_rgb(h, s, l)
-                        if rgb_temp:
-                            result = rgb_to_hsv(rgb_temp[0], rgb_temp[1], rgb_temp[2])
+                        result = rgb_to_hsv(rgb_temp[0], rgb_temp[1], rgb_temp[2])
                     elif ToValue == "HSL":
                         result = f"{h}, {s}, {l}"
                     else:
@@ -406,14 +395,8 @@ def cw_convert_values(Window: ctk.CTk or ctk.CTkToplevel, FromValue: str, ToValu
     if error_message:
         CTkMessagebox(title="xzyNotepad", message=error_message, icon="warning")
     if Value is None and error_message is None:
-        if selected_text_info:
-            Window.change_history()
-            Window.codebox.delete(selected_text_info['start'], selected_text_info["end"])
-            Window.codebox.insert(selected_text_info['start'], str(result) if isinstance(result, tuple) else "(" + result + ")")
-            Window.change_history()
-            Window.codebox.line_nums.redraw()
-        else:
-            CTkMessagebox(title="xzyNotepad", message="Selected text is not detected.", icon="warning")
+        Window.codebox.delete(text['start'], text["end"])
+        Window.codebox.insert(text['start'], str(result) if isinstance(result, tuple) else "(" + result + ")")
     else:
         return result
 
